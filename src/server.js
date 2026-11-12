@@ -34,6 +34,11 @@ function bootstrap() {
   if (!one('SELECT id FROM school_info WHERE id = 1')) {
     run("INSERT INTO school_info (id, name, state) VALUES (1, 'Government School', 'India')");
   }
+  if (!one('SELECT id FROM classes LIMIT 1')) {
+    for (const name of ['6', '7', '8', '9', '10']) {
+      run("INSERT INTO classes (name, section) VALUES (?, 'A')", name);
+    }
+  }
   if (!one('SELECT id FROM users LIMIT 1')) {
     const pw = generatePassword();
     run(`INSERT INTO users (username, password_hash, role, full_name, must_change_password)
