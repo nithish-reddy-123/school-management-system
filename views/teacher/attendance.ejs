@@ -22,7 +22,7 @@
         <span class="result-count" id="attCounter" aria-live="polite"></span>
       </div>
       <div class="table-wrap">
-        <table class="table">
+        <table class="table att-table">
           <thead><tr><th class="num">Roll</th><th>Name</th><th>Status</th></tr></thead>
           <tbody>
             <% if (!students.length) { %><tr><td colspan="3" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'users', text: 'No students in this class.', compact: true } }) %></td></tr><% } %>

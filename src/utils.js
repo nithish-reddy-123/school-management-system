@@ -8,6 +8,11 @@ function localDate(d = new Date()) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+/** Local timestamp as 'YYYY-MM-DD HH:MM:SS' (the format stored for created_at, last_login, etc.). */
+function nowLocal(d = new Date()) {
+  return `${localDate(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 function localTime(d = new Date()) {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
@@ -131,7 +136,7 @@ function dayOfWeek(dateStr) {
 }
 
 module.exports = {
-  localDate, localTime, addDays, isValidDate, academicYear, formatDate, grade,
+  localDate, localTime, nowLocal, addDays, isValidDate, academicYear, formatDate, grade,
   generatePassword, toInt, str, csvEscape, percent, dayOfWeek, monthParam, level,
   passwordProblem, USERNAME_RE, PHONE_RE, EMAIL_RE, initials, hue,
   DAYS, PERIODS, CATEGORIES, GENDERS,

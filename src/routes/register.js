@@ -2,8 +2,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { rateLimit } = require('express-rate-limit');
-const { one, all, run, audit } = require('../db');
-const { str, toInt, isValidDate, localDate, passwordProblem, USERNAME_RE, PHONE_RE, EMAIL_RE } = require('../utils');
+const { col, classSort, insertWithId, dupKey, audit } = require('../db');
+const { str, toInt, isValidDate, localDate, nowLocal, passwordProblem, USERNAME_RE, PHONE_RE, EMAIL_RE } = require('../utils');
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ const registerLimiter = rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skipFailedRequests: true,
-  handler: (req, res) => renderForm(req, res, roleOf(req.body && req.body.role), emptyForm(), res.locals.t('err_rate'), 429),
+  handler: (req, res, next) => renderForm(req, res, roleOf(req.body && req.body.role), emptyForm(), res.locals.t('err_rate'), 429).catch(next),
 });
 
 const roleOf = (v) => (ROLES.includes(v) ? v : 'student');
@@ -31,20 +31,21 @@ function emptyForm() {
   };
 }
 
-function renderForm(req, res, role, v, error, status = 200) {
+async function renderForm(req, res, role, v, error, status = 200) {
+  const classes = (await col('classes').find({}, { projection: { _id: 0, id: 1, name: 1, section: 1 } }).toArray()).sort(classSort);
   res.status(status).render('auth/register', {
     title: res.locals.t('register'),
     role, roles: ROLES, v, error, relations: RELATIONS,
-    classes: all('SELECT id, name, section FROM classes ORDER BY CAST(name AS INTEGER), name, section'),
+    classes,
   });
 }
 
-router.get('/register', (req, res) => {
+router.get('/register', async (req, res) => {
   if (req.user) return res.redirect('/dashboard');
-  renderForm(req, res, roleOf(req.query.role), emptyForm(), null);
+  await renderForm(req, res, roleOf(req.query.role), emptyForm(), null);
 });
 
-router.post('/register', registerLimiter, (req, res) => {
+router.post('/register', registerLimiter, async (req, res) => {
   if (req.user) return res.redirect('/dashboard');
   const t = res.locals.t;
   const role = roleOf(req.body.role);
@@ -63,15 +64,15 @@ router.post('/register', registerLimiter, (req, res) => {
   let error = null;
   if (!v.full_name) error = t('err_name');
   else if (!USERNAME_RE.test(v.username)) error = t('err_username');
-  else if (one('SELECT 1 AS x FROM users WHERE username = ?', v.username)
-    || one("SELECT 1 AS x FROM registrations WHERE username = ? AND status = 'pending'", v.username)) error = t('err_taken');
+  else if (await col('users').findOne({ username: v.username })
+    || await col('registrations').findOne({ username: v.username, status: 'pending' })) error = t('err_taken');
   else if ((role !== 'student' || v.phone) && !PHONE_RE.test(v.phone)) error = t('err_phone');
   else if (v.email && !EMAIL_RE.test(v.email)) error = t('err_email');
   else if (passwordProblem(password, v.username)) error = t('err_password');
   else if (password !== confirm) error = t('err_mismatch');
   else if (role === 'student') {
     const classId = toInt(v.class_id);
-    if (!classId || !one('SELECT id FROM classes WHERE id = ?', classId)) error = t('err_class');
+    if (!classId || !await col('classes').findOne({ id: classId })) error = t('err_class');
     else if (!isValidDate(v.dob) || v.dob >= localDate()) error = t('err_dob');
     else if (v.guardian_phone && !PHONE_RE.test(v.guardian_phone)) error = t('err_phone');
   } else if (role === 'parent') {
@@ -86,13 +87,15 @@ router.post('/register', registerLimiter, (req, res) => {
       : { employee_id: v.employee_id, designation: v.designation, qualification: v.qualification };
 
   try {
-    run(`INSERT INTO registrations (role, username, password_hash, full_name, phone, email, details, ip)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, role, v.username, bcrypt.hashSync(password, 10), v.full_name, v.phone, v.email, JSON.stringify(details), req.ip);
+    await insertWithId('registrations', {
+      role, username: v.username, password_hash: bcrypt.hashSync(password, 10), full_name: v.full_name, phone: v.phone || null, email: v.email || null,
+      details: JSON.stringify(details), status: 'pending', review_note: null, reviewed_by: null, reviewed_at: null, user_id: null, ip: req.ip, created_at: nowLocal(),
+    });
   } catch (err) {
-    if (!String(err.message).includes('UNIQUE')) throw err;
+    if (!dupKey(err)) throw err;
     return renderForm(req, res, role, v, t('err_taken'), 400);
   }
-  audit(null, 'registration_submitted', `${role} ${v.username}`, req.ip);
+  await audit(null, 'registration_submitted', `${role} ${v.username}`, req.ip);
   req.flash('success', t('registrationReceived'));
   res.redirect(`/login?role=${role}`);
 });

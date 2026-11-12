@@ -13,8 +13,6 @@ services:
         value: "1"
       - key: SESSION_SECRET
         generateValue: true
-      - key: DB_PATH
-        value: /tmp/school.db
       - key: MONGODB_DB
         value: school_management
       - key: MONGODB_URI

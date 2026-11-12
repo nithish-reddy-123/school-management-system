@@ -9,14 +9,14 @@ const session = require('express-session');
 const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 
-const { one, run, dbPath, replaceDatabase } = require('./db');
-const SQLiteStore = require('./sessionStore');
-const { connectMongo, restoreSqliteSnapshot, queueSqliteSnapshot } = require('./mongodb');
+const { connect, col, dbInfo, insertWithId, dupKey } = require('./db');
+const MongoSessionStore = require('./sessionStore');
 const { locals, loadUser, csrf, enforcePasswordChange } = require('./middleware/auth');
-const { generatePassword } = require('./utils');
+const { generatePassword, nowLocal } = require('./utils');
 
 const isProd = process.env.NODE_ENV === 'production';
 const PORT = Number(process.env.PORT) || 3000;
+const DATA_DIR = path.join(__dirname, '..', 'data');
 
 function sessionSecret() {
   if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
@@ -24,45 +24,52 @@ function sessionSecret() {
     console.error('SESSION_SECRET must be set in production. See .env.example.');
     process.exit(1);
   }
-  // Development convenience: keep a generated secret next to the database so logins survive restarts.
-  const file = path.join(path.dirname(dbPath), '.session-secret');
-  if (!fs.existsSync(file)) fs.writeFileSync(file, crypto.randomBytes(48).toString('hex'), { mode: 0o600 });
+  // Development convenience: keep a generated secret in data/ so logins survive restarts.
+  const file = path.join(DATA_DIR, '.session-secret');
+  if (!fs.existsSync(file)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(file, crypto.randomBytes(48).toString('hex'), { mode: 0o600 });
+  }
   return fs.readFileSync(file, 'utf8').trim();
 }
 
-/** First run without demo data: create a default school record and one headmaster account. */
-function bootstrap() {
-  if (!one('SELECT id FROM school_info WHERE id = 1')) {
-    run("INSERT INTO school_info (id, name, state) VALUES (1, 'Government School', 'India')");
-  }
-  if (!one('SELECT id FROM classes LIMIT 1')) {
+/** First run without demo data: create a default school record, classes 6-10 and one headmaster account. */
+async function bootstrap() {
+  await col('school_info').updateOne({ id: 1 }, { $setOnInsert: { name: 'Government School', state: 'India', photo: null } }, { upsert: true });
+  if (!(await col('classes').findOne({}))) {
     for (const name of ['6', '7', '8', '9', '10']) {
-      run("INSERT INTO classes (name, section) VALUES (?, 'A')", name);
+      try {
+        await insertWithId('classes', { name, section: 'A', class_teacher_id: null });
+      } catch (err) {
+        if (!dupKey(err)) throw err; // another instance created it at the same time
+      }
     }
   }
-  if (!one('SELECT id FROM users LIMIT 1')) {
+  if (!(await col('users').findOne({}))) {
     const pw = generatePassword();
-    run(`INSERT INTO users (username, password_hash, role, full_name, must_change_password)
-      VALUES ('headmaster', ?, 'headmaster', 'Headmaster', 1)`, bcrypt.hashSync(pw, 10));
-    console.log('\n  No users found. Created the first headmaster account:');
-    console.log(`    username: headmaster   temporary password: ${pw}`);
-    console.log('  (You will be asked to change it at first login. Run "npm run seed:reset" for demo data instead.)\n');
+    try {
+      await insertWithId('users', {
+        username: 'headmaster', password_hash: await bcrypt.hash(pw, 10), role: 'headmaster', full_name: 'Headmaster',
+        phone: null, email: null, is_active: 1, must_change_password: 1, last_login: null, created_at: nowLocal(),
+      });
+      console.log('\n  No users found. Created the first headmaster account:');
+      console.log(`    username: headmaster   temporary password: ${pw}`);
+      console.log('  (You will be asked to change it at first login. Run "npm run seed:reset" for demo data instead.)\n');
+    } catch (err) {
+      if (!dupKey(err)) throw err;
+    }
   }
 }
 
 async function initialize() {
-  if (process.env.MONGODB_URI) {
-    await connectMongo();
-    replaceDatabase(await restoreSqliteSnapshot());
-  }
-  bootstrap();
-  await queueSqliteSnapshot(dbPath);
+  await connect();
+  await bootstrap();
+  const { host, dbName } = dbInfo();
+  console.log(`Connected to MongoDB database "${dbName}" on ${host}`);
 }
 
-const ready = initialize().catch((err) => {
-  console.error(`Database initialization failed: ${err.message}`);
-  throw err;
-});
+const ready = initialize();
+ready.catch((err) => console.error(`Database initialization failed: ${err.message}`));
 
 const app = express();
 app.disable('x-powered-by');
@@ -97,7 +104,7 @@ app.use(express.static(PUBLIC_DIR, {
 app.use(express.urlencoded({ extended: false, limit: '200kb', parameterLimit: 5000 }));
 app.use(session({
   name: 'sms.sid',
-  store: new SQLiteStore(),
+  store: new MongoSessionStore(),
   secret: sessionSecret(),
   resave: false,
   saveUninitialized: false,
@@ -132,7 +139,9 @@ app.use((err, req, res, next) => {
 if (require.main === module) {
   ready.then(() => app.listen(PORT, () => {
     console.log(`School Management System running at http://localhost:${PORT}`);
-  })).catch(() => process.exitCode = 1);
+  })).catch(() => {
+    process.exitCode = 1;
+  });
 }
 
 module.exports = app;

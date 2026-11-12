@@ -1,9 +1,11 @@
 'use strict';
 const crypto = require('node:crypto');
-const { one } = require('../db');
+const { col } = require('../db');
 const { translator, LANGS, LANG_NAMES } = require('../i18n');
 const utils = require('../utils');
 const { pendingCount } = require('../services/registrations');
+
+const USER_FIELDS = { _id: 0, id: 1, username: 1, role: 1, full_name: 1, phone: 1, email: 1, is_active: 1, must_change_password: 1, last_login: 1 };
 
 // Sidebar navigation grouped into sections: [sectionKey, [[href, labelKey, iconId], ...]]
 const NAV = {
@@ -47,7 +49,7 @@ function greetingKey(d = new Date()) {
   return h < 12 ? 'goodMorning' : h < 17 ? 'goodAfternoon' : 'goodEvening';
 }
 /** Shared template locals: language, translator, flash, school info, helpers. */
-function locals(req, res, next) {
+async function locals(req, res, next) {
   const lang = LANGS.includes(req.session.lang) ? req.session.lang : 'en';
   res.locals.lang = lang;
   res.locals.t = translator(lang);
@@ -61,7 +63,7 @@ function locals(req, res, next) {
   res.locals.crumb = null;
   res.locals.pendingRegistrations = 0;
   res.locals.csrfToken = '';
-  const school = one('SELECT * FROM school_info WHERE id = 1') || { name: 'Government School', udise_code: '', district: '', state: '' };
+  const school = await col('school_info').findOne({ id: 1 }, { projection: { _id: 0 } }) || { name: 'Government School', udise_code: '', district: '', state: '' };
   res.locals.school = school;
   res.locals.schoolName = (lang === 'hi' && school.name_hi) || (lang === 'te' && school.name_te) || school.name;
   res.locals.hasPhoto = !!school.photo;
@@ -76,21 +78,18 @@ function locals(req, res, next) {
 }
 
 /** Loads the signed-in user on every request and drops sessions of deactivated/deleted users. */
-function loadUser(req, res, next) {
+async function loadUser(req, res, next) {
   res.locals.user = null;
   res.locals.nav = [];
   if (req.session.userId) {
-    const user = one(
-      'SELECT id, username, role, full_name, phone, email, is_active, must_change_password, last_login FROM users WHERE id = ?',
-      req.session.userId,
-    );
+    const user = await col('users').findOne({ id: req.session.userId }, { projection: USER_FIELDS });
     if (!user || !user.is_active) {
       return req.session.destroy(() => res.redirect('/login'));
     }
     req.user = user;
     res.locals.user = user;
     // Only requests this user is the verifier for (teacher: own class; headmaster: teachers + unrouted).
-    const pending = pendingCount(user);
+    const pending = await pendingCount(user);
     res.locals.pendingRegistrations = pending;
     res.locals.nav = (NAV[user.role] || []).map(([section, items]) => ({
       section,

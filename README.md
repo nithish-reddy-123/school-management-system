@@ -2,19 +2,31 @@
 
 A web application for running a government school: attendance, marks, homework, notices, mid-day meals, scholarships, free entitlements and parent communication. It has separate, role-based logins for **Headmaster**, **Teacher**, **Student** and **Parent**.
 
-Built with Node.js, Express 5, EJS (server-rendered pages) and SQLite (Node's built-in `node:sqlite`, so there is nothing to compile or install separately).
+Built with Node.js, Express 5, EJS (server-rendered pages) and MongoDB.
 
 ## Quick start
 
-Requires Node.js 22.5 or newer (tested on 23.1).
+Requires Node.js 22.5 or newer (tested on 23.1) and MongoDB (a local server, tested on 8.0, or MongoDB Atlas).
 
 ```powershell
 npm install
-npm run seed      # loads demo data into data/school.db (only if the database is empty)
+npm run seed      # loads demo data into MongoDB (only if the database has no users)
 npm start         # http://localhost:3000
 ```
 
-`npm run seed:reset` deletes **all** data and reloads the demo data. `npm run dev` restarts the server automatically when files change.
+Without a `.env` file the app uses `mongodb://127.0.0.1:27017` and the database `school_management`.
+`npm run seed:reset` deletes **all** school data in that database and reloads the demo data. `npm run dev` restarts the server automatically when files change.
+
+### Moving data from the old SQLite version
+
+Earlier versions stored everything in `data/school.db`. To copy that data into MongoDB (the SQLite file is only read, never changed):
+
+```powershell
+npm run migrate:sqlite              # into an empty MongoDB database
+npm run migrate:sqlite -- --force   # replaces the school data already in the MongoDB database
+```
+
+Ids, links, attendance, marks and the uploaded school photo are kept. Everyone signs in again once, because old sessions are not copied.
 
 ### Demo accounts (password `Pass@123` for all)
 
@@ -127,20 +139,24 @@ Copy `.env.example` to `.env`:
 | `SESSION_SECRET` | **Required in production.** Long random string |
 | `NODE_ENV` | Set to `production` behind HTTPS to enable secure cookies |
 | `TRUST_PROXY` | Set to `1` when running behind a reverse proxy (nginx etc.) |
-| `DB_PATH` | Optional custom SQLite file location |
+| `MONGODB_URI` | MongoDB connection string. **Required in production**; defaults to `mongodb://127.0.0.1:27017` in development |
+| `MONGODB_DB` | Database name (default: the name in the URI path, otherwise `school_management`) |
 
 In development, a session secret is generated and saved to `data/.session-secret`.
 
-**Backups:** all data lives in `data/school.db`. Stop the server and copy the `data` folder to back up.
+**Data:** everything, including login sessions and the uploaded school photo, is stored in MongoDB, so the app keeps no data on its own disk (works on hosts like Render whose disk is wiped on redeploy). The app does not need multi-document transactions, so a single local MongoDB server works as well as an Atlas cluster.
+
+**Backups:** use `mongodump --db school_management` (MongoDB Database Tools) or Atlas backups.
 
 ## Project structure
 
 ```
 src/
   server.js            app setup, security middleware, first-run bootstrap
-  db.js                SQLite schema and query helpers
+  db.js                MongoDB connection, collections, indexes and helpers
   seed.js              demo data
-  sessionStore.js      sessions stored in SQLite
+  migrate-sqlite.js    one-time import from the old SQLite database
+  sessionStore.js      sessions stored in MongoDB
   i18n.js              English/Hindi labels
   utils.js             dates, grading, validation helpers
   middleware/auth.js   login, role checks, CSRF, flash messages, navigation

@@ -5,10 +5,11 @@
   "description": "School management system for Indian government schools with role-based access for headmasters, teachers, students and parents",
   "main": "src/server.js",
   "scripts": {
-    "start": "node --experimental-sqlite --disable-warning=ExperimentalWarning src/server.js",
-    "dev": "node --watch --experimental-sqlite --disable-warning=ExperimentalWarning src/server.js",
-    "seed": "node --experimental-sqlite --disable-warning=ExperimentalWarning src/seed.js",
-    "seed:reset": "node --experimental-sqlite --disable-warning=ExperimentalWarning src/seed.js --reset"
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed.js",
+    "seed:reset": "node src/seed.js --reset",
+    "migrate:sqlite": "node --experimental-sqlite --disable-warning=ExperimentalWarning src/migrate-sqlite.js"
   },
   "engines": {
     "node": ">=22.5.0"

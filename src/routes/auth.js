@@ -2,9 +2,10 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { rateLimit } = require('express-rate-limit');
-const { one, run, audit } = require('../db');
+const { col, audit } = require('../db');
+const { destroyUserSessions } = require('../sessionStore');
 const { LANGS } = require('../i18n');
-const { str, passwordProblem } = require('../utils');
+const { str, passwordProblem, nowLocal } = require('../utils');
 
 const router = express.Router();
 
@@ -26,25 +27,31 @@ const loginLimiter = rateLimit({
 const ROLES = ['student', 'parent', 'teacher', 'headmaster'];
 const roleParam = (v) => (ROLES.includes(v) ? v : null);
 
+/** Promise wrappers for express-session's callback API. */
+const regenerate = (req) => new Promise((ok, fail) => req.session.regenerate((e) => (e ? fail(e) : ok())));
+const save = (req) => new Promise((ok, fail) => req.session.save((e) => (e ? fail(e) : ok())));
+
 router.get('/login', (req, res) => {
   if (req.user) return res.redirect('/dashboard');
   res.render('auth/login', { title: 'Login', username: '', role: roleParam(req.query.role), roles: ROLES, error: null });
 });
 
-router.post('/login', loginLimiter, (req, res, next) => {
+router.post('/login', loginLimiter, async (req, res) => {
   const username = str(req.body.username, 50).toLowerCase();
   const password = String(req.body.password || '').slice(0, 200);
   const role = roleParam(req.body.role);
-  const user = username ? one('SELECT * FROM users WHERE username = ?', username) : null;
+  const user = username ? await col('users').findOne({ username }) : null;
   const ok = bcrypt.compareSync(password, user ? user.password_hash : DUMMY_HASH);
-  const fail = (error, details) => {
-    audit(user ? user.id : null, 'login_failed', details, req.ip);
+  const fail = async (error, details) => {
+    await audit(user ? user.id : null, 'login_failed', details, req.ip);
     return res.status(401).render('auth/login', { title: 'Login', username, role, roles: ROLES, error });
   };
 
   if (!user) {
     // Self-registered users get a clear status message (only when their password is correct).
-    const reg = username ? one("SELECT status, password_hash FROM registrations WHERE username = ? AND status != 'approved' ORDER BY id DESC LIMIT 1", username) : null;
+    const reg = username
+      ? await col('registrations').find({ username, status: { $ne: 'approved' } }).sort({ id: -1 }).limit(1).next()
+      : null;
     if (reg && bcrypt.compareSync(password, reg.password_hash)) {
       return fail(res.locals.t(reg.status === 'pending' ? 'pendingApproval' : 'registrationRejected'), `username=${username} registration ${reg.status}`);
     }
@@ -58,18 +65,17 @@ router.post('/login', loginLimiter, (req, res, next) => {
 
   const lang = req.session.lang;
   // New session ID on login prevents session fixation.
-  req.session.regenerate((err) => {
-    if (err) return next(err);
-    req.session.userId = user.id;
-    req.session.lang = lang;
-    run("UPDATE users SET last_login = datetime('now','localtime') WHERE id = ?", user.id);
-    audit(user.id, 'login', null, req.ip);
-    req.session.save((err2) => (err2 ? next(err2) : res.redirect('/dashboard')));
-  });
+  await regenerate(req);
+  req.session.userId = user.id;
+  req.session.lang = lang;
+  await col('users').updateOne({ id: user.id }, { $set: { last_login: nowLocal() } });
+  await audit(user.id, 'login', null, req.ip);
+  await save(req);
+  res.redirect('/dashboard');
 });
 
-router.post('/logout', (req, res) => {
-  if (req.user) audit(req.user.id, 'logout', null, req.ip);
+router.post('/logout', async (req, res) => {
+  if (req.user) await audit(req.user.id, 'logout', null, req.ip);
   req.session.destroy(() => {
     res.clearCookie('sms.sid');
     res.redirect('/login');
@@ -81,12 +87,12 @@ router.get('/change-password', (req, res) => {
   res.render('auth/change_password', { title: 'Change Password', error: null });
 });
 
-router.post('/change-password', (req, res) => {
+router.post('/change-password', async (req, res) => {
   if (!req.user) return res.redirect('/login');
   const current = String(req.body.current_password || '');
   const next = String(req.body.new_password || '').slice(0, 200);
   const confirm = String(req.body.confirm_password || '');
-  const row = one('SELECT password_hash FROM users WHERE id = ?', req.user.id);
+  const row = await col('users').findOne({ id: req.user.id }, { projection: { password_hash: 1 } });
   let error = null;
   if (!bcrypt.compareSync(current, row.password_hash)) error = 'Current password is incorrect.';
   else if (next !== confirm) error = 'New passwords do not match.';
@@ -94,10 +100,10 @@ router.post('/change-password', (req, res) => {
   else error = passwordProblem(next, req.user.username);
   if (error) return res.status(400).render('auth/change_password', { title: 'Change Password', error });
 
-  run('UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?', bcrypt.hashSync(next, 10), req.user.id);
+  await col('users').updateOne({ id: req.user.id }, { $set: { password_hash: bcrypt.hashSync(next, 10), must_change_password: 0 } });
   // Sign out other devices by removing every other session for this user.
-  run("DELETE FROM sessions WHERE sid != ? AND json_extract(sess, '$.userId') = ?", req.sessionID, req.user.id);
-  audit(req.user.id, 'password_changed', null, req.ip);
+  await destroyUserSessions(req.user.id, req.sessionID);
+  await audit(req.user.id, 'password_changed', null, req.ip);
   req.flash('success', 'Password changed successfully.');
   res.redirect('/dashboard');
 });

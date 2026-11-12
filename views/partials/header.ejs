@@ -8,9 +8,9 @@
   <meta name="view-transition" content="same-origin">
   <title><%= title %> · <%= schoolName %></title>
   <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/style.css">
-  <script src="/js/theme.js"></script>
-  <script src="/js/app.js" defer></script>
+  <link rel="stylesheet" href="<%= asset('css/style.css') %>">
+  <script src="<%= asset('js/theme.js') %>"></script>
+  <script src="<%= asset('js/app.js') %>" defer></script>
 </head>
 <body class="<%= user ? 'has-user' : 'guest' %>"
   data-t-show="<%= t('showPassword') %>" data-t-hide="<%= t('hidePassword') %>" data-t-close="<%= t('close') %>"
