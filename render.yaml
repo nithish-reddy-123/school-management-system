@@ -2,7 +2,7 @@ services:
   - type: web
     name: school-management-system
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /login
@@ -13,7 +13,3 @@ services:
         generateValue: true
       - key: DB_PATH
         value: /var/data/school.db
-    disk:
-      name: school-data
-      mountPath: /var/data
-      sizeGB: 1
