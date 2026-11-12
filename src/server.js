@@ -96,6 +96,10 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { title: 'Something went wrong', status: 500, message: 'An unexpected error occurred. Please try again.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`School Management System running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`School Management System running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
