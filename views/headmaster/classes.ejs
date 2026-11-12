@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('classes'), icon: 'school', sub: classes.length + ' classes · assign class teachers, subjects and timetables.' } }) %>
+<div class="grid grid-side">
+  <section class="card">
+    <div class="toolbar">
+      <label class="search-field grow"><span class="sr-only"><%= t('search') %></span><%- icon('search') %>
+        <input type="search" data-filter-table="#classesTable" placeholder="Filter classes or teachers">
+      </label>
+      <span class="result-count"><span data-filter-count="#classesTable"><%= classes.length %></span> <%= t('results') %></span>
+    </div>
+    <div class="table-wrap">
+      <table class="table" id="classesTable">
+        <thead><tr><th>Class</th><th>Class teacher</th><th class="num">Students</th><th></th></tr></thead>
+        <tbody>
+          <% if (!classes.length) { %><tr><td colspan="4" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'school', title: 'No classes yet', text: 'Create your first class using the form.' } }) %></td></tr><% } %>
+          <% classes.forEach(function (c) { %>
+            <tr>
+              <td><span class="person"><span class="avatar-sm" style="--h: <%= utils.hue('c' + c.id) %>"><%= c.name %><%= c.section %></span><a href="/hm/classes/<%= c.id %>"><strong>Class <%= c.name %>-<%= c.section %></strong></a></span></td>
+              <td><%= c.class_teacher_name || '—' %></td>
+              <td class="num"><%= c.student_count %></td>
+              <td class="actions"><a class="btn btn-sm btn-light" href="/hm/classes/<%= c.id %>">Manage <%- icon('arrow-right') %></a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="card form-panel">
+    <h2><%- icon('plus') %> Add class</h2>
+    <form method="post" action="/hm/classes">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label>Class <input name="name" required maxlength="10" placeholder="e.g. 1, 6, 10, 12"></label>
+      <label>Section <input name="section" maxlength="5" value="A"></label>
+      <label>Class teacher
+        <select name="class_teacher_id"><option value="">— None —</option><% teachers.forEach(function (tc) { %><option value="<%= tc.id %>"><%= tc.full_name %></option><% }) %></select>
+      </label>
+      <button class="btn btn-block" type="submit"><%- icon('plus') %> Create class</button>
+    </form>
+  </section>
+</div>
+<%- include('../partials/footer') %>

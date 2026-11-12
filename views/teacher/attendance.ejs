@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+<% const current = classes.find(function (c) { return c.id === classId; }); %>
+<%- include('../partials/page_head', { ph: { title: t('attendance'), icon: 'check-square', sub: current ? 'Class ' + current.name + '-' + current.section + ' · ' + utils.formatDate(date) : 'Daily attendance for your class' } }) %>
+<% if (!classes.length) { %>
+  <section class="card"><%- include('../partials/empty', { e: { icon: 'school', title: 'No class assigned', text: 'Only class teachers mark attendance. You are not assigned as class teacher of any class.' } }) %></section>
+<% } else { %>
+  <section class="card">
+    <form method="get" action="/teacher/attendance" class="toolbar">
+      <select name="class_id" aria-label="Class"><% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= c.id === classId ? 'selected' : '' %>>Class <%= c.name %>-<%= c.section %></option><% }) %></select>
+      <input type="date" name="date" value="<%= date %>" max="<%= today %>" aria-label="Date">
+      <button class="btn btn-light" type="submit">Load</button>
+    </form>
+    <% if (warning) { %><div class="callout callout-warn"><%- icon('calendar') %><div><%= warning %></div></div><% } %>
+    <% if (markedCount) { %><div class="callout callout-info"><%- icon('info') %><div>Attendance already recorded for <%= markedCount %> student(s) on this date. Saving will update it.</div></div><% } %>
+
+    <form method="post" action="/teacher/attendance" id="attendanceForm">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="class_id" value="<%= classId %>">
+      <input type="hidden" name="date" value="<%= date %>">
+      <div class="toolbar">
+        <button type="button" class="btn btn-sm btn-light" data-mark-all="P"><%- icon('check-circle') %> Mark all present</button>
+        <span class="result-count" id="attCounter" aria-live="polite"></span>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th class="num">Roll</th><th>Name</th><th>Status</th></tr></thead>
+          <tbody>
+            <% if (!students.length) { %><tr><td colspan="3" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'users', text: 'No students in this class.', compact: true } }) %></td></tr><% } %>
+            <% students.forEach(function (s) { %>
+              <tr>
+                <td class="num"><%= s.roll_no || '' %></td>
+                <td><span class="person"><span class="avatar-sm" style="--h: <%= utils.hue(s.full_name) %>" aria-hidden="true"><%= utils.initials(s.full_name) %></span><span><strong><%= s.full_name %></strong><% if (s.approvedLeave) { %><small><span class="badge st-approved">approved leave</span></small><% } %></span></span></td>
+                <td class="att-options" role="radiogroup" aria-label="<%= s.full_name %>">
+                  <% [['P', t('present')], ['A', t('absent')], ['L', t('onLeave')]].forEach(function ([v, l]) { %>
+                    <label class="pill pill-<%= v %>"><input type="radio" name="status_<%= s.id %>" value="<%= v %>" <%= (s.status || 'P') === v ? 'checked' : '' %> required> <%= l %></label>
+                  <% }) %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% if (students.length) { %><div class="sticky-actions"><button class="btn btn-lg" type="submit"><%- icon('check-circle') %> <%= t('save') %> attendance</button></div><% } %>
+    </form>
+  </section>
+<% } %>
+<%- include('../partials/footer') %>

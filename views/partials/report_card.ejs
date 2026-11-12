@@ -1,0 +1,30 @@
+<% if (!exams.length) { %>
+  <%- include('empty', { e: { icon: 'file-text', title: 'No results yet', text: 'Marks will appear here once teachers publish them.' } }) %>
+<% } %>
+<% exams.forEach(function (ex) { %>
+  <div class="exam-block">
+    <h3><%= ex.name %> <small class="muted">· <%= ex.academic_year %><% if (ex.exam_date) { %> · <%= utils.formatDate(ex.exam_date) %><% } %> · Max <%= ex.max_marks %> per subject</small></h3>
+    <table class="table">
+      <thead><tr><th>Subject</th><th class="num">Marks</th><th class="num">%</th><th>Grade</th></tr></thead>
+      <tbody>
+        <% ex.subjects.forEach(function (s) { %>
+          <tr>
+            <td><%= s.subject %></td>
+            <td class="num"><%= s.marks %> / <%= ex.max_marks %></td>
+            <td class="num"><%= s.percent %></td>
+            <td><span class="grade g-<%= s.grade %>"><%= s.grade %></span></td>
+          </tr>
+        <% }) %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>Total</th>
+          <th class="num"><%= ex.total %> / <%= ex.maxTotal %></th>
+          <th class="num"><%= ex.percent %>%</th>
+          <th><span class="grade g-<%= ex.grade %>"><%= ex.grade %></span><% if (ex.rank) { %> <small class="muted">Class rank <%= ex.rank %></small><% } %></th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+<% }) %>
+<p class="muted small">Grading scale: A1 (91–100), A2 (81–90), B1 (71–80), B2 (61–70), C1 (51–60), C2 (41–50), D (33–40), E (below 33 – needs improvement).</p>

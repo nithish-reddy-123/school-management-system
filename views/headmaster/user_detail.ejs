@@ -1,0 +1,78 @@
+<%- include('../partials/header') %>
+<%
+  const headActions = [
+    { href: '/hm/users/' + u.id + '/edit', label: 'Edit', icon: 'pen', kind: 'light' },
+    { post: '/hm/users/' + u.id + '/reset-password', label: 'Reset password', icon: 'key', kind: 'light', confirm: 'Generate a new temporary password for ' + u.username + '?' },
+  ];
+  if (u.id !== user.id) {
+    headActions.push({ post: '/hm/users/' + u.id + '/toggle-active', label: u.is_active ? 'Deactivate' : 'Activate', icon: u.is_active ? 'x' : 'check-circle', kind: u.is_active ? 'danger' : 'primary', confirm: (u.is_active ? 'Deactivate' : 'Activate') + ' this account?' });
+  }
+  const badges = [{ label: t(u.role) }];
+  if (!u.is_active) badges.push({ label: 'Inactive', cls: 'st-rejected' });
+%>
+<%- include('../partials/page_head', { ph: {
+  title: u.full_name, icon: u.role === 'student' ? 'backpack' : u.role === 'parent' ? 'heart' : u.role === 'teacher' ? 'pen' : 'landmark',
+  badges: badges, actions: headActions,
+  sub: '@' + u.username + ' · Created ' + utils.formatDate(u.created_at) + ' · Last login ' + (u.last_login ? utils.formatDate(u.last_login) : 'never') + (u.phone ? ' · ' + u.phone : ''),
+} }) %>
+
+<% if (overview) { %>
+  <%- include('../partials/student_overview', { overview: overview, baseUrl: '/hm/users/' + u.id }) %>
+<% } %>
+
+<% if (u.role === 'parent') { %>
+  <section class="card">
+    <h2><%- icon('heart') %> Linked children</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Name</th><th>Adm. No.</th><th>Class</th><th>Relation</th><th></th></tr></thead>
+        <tbody>
+          <% if (!children.length) { %><tr><td colspan="5" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'heart', text: 'No children linked yet. Link one below.', compact: true } }) %></td></tr><% } %>
+          <% children.forEach(function (c) { %>
+            <tr>
+              <td><%- include('../partials/person', { pn: { name: c.full_name, href: '/hm/users/' + c.id } }) %></td><td><%= c.admission_no %></td>
+              <td><%= c.class_name %>-<%= c.section %></td><td><%= c.relation || '' %></td>
+              <td class="actions">
+                <form method="post" action="/hm/users/<%= u.id %>/children/<%= c.id %>/delete" class="inline" data-confirm="Unlink this child?">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button class="link danger" type="submit">Unlink</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <form method="post" action="/hm/users/<%= u.id %>/children" class="toolbar">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input name="admission_no" placeholder="Admission number" required aria-label="Admission number">
+      <input name="relation" placeholder="Relation (Father/Mother/Guardian)" aria-label="Relation">
+      <button class="btn" type="submit"><%- icon('plus') %> Link child</button>
+    </form>
+  </section>
+<% } %>
+
+<% if (u.role === 'teacher' || u.role === 'headmaster') { %>
+  <div class="grid grid-2">
+    <section class="card">
+      <h2><%- icon('clipboard') %> Service details</h2>
+      <dl class="dl">
+        <dt>Employee ID</dt><dd><%= u.employee_id || '-' %></dd>
+        <dt>Designation</dt><dd><%= u.designation || '-' %></dd>
+        <dt>Qualification</dt><dd><%= u.qualification || '-' %></dd>
+        <dt>Joining date</dt><dd><%= utils.formatDate(u.joining_date) || '-' %></dd>
+        <dt>Class teacher of</dt><dd><%= classTeacherOf.map(function (c) { return c.name + '-' + c.section; }).join(', ') || '-' %></dd>
+      </dl>
+    </section>
+    <section class="card tone-violet">
+      <h2><%- icon('book') %> Subjects taught</h2>
+      <% if (!assignments.length) { %><%- include('../partials/empty', { e: { icon: 'book', text: 'No subjects assigned. Assign subjects from a class page.', href: '/hm/classes', cta: 'Open classes', compact: true } }) %><% } %>
+      <ul class="list-rows"><% assignments.forEach(function (a) { %><li><span class="badge badge-subject"><%= a.subject_name %></span><a href="/hm/classes/<%= a.class_id %>">Class <%= a.class_name %>-<%= a.section %></a></li><% }) %></ul>
+    </section>
+  </div>
+  <section class="card">
+    <h2><%- icon('clock') %> <%= t('timetable') %></h2>
+    <%- include('../partials/timetable', { timetable: timetable }) %>
+  </section>
+<% } %>
+<%- include('../partials/footer') %>

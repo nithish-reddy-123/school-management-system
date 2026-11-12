@@ -1,0 +1,57 @@
+<%- include('../partials/header') %>
+<section class="welcome reveal">
+  <div>
+    <p class="eyebrow"><%= t(greeting) %> <span class="wave-hand">👋</span></p>
+    <h1><%= user.full_name %></h1>
+    <p><%= t('myChildren') %> · <%= children.length %></p>
+  </div>
+  <a class="btn btn-saffron" href="/parent/leave"><%- icon('send') %> <%= t('applyLeave') %></a>
+</section>
+
+<% if (!children.length) { %>
+  <section class="card">
+    <%- include('../partials/empty', { e: { icon: 'heart', title: 'No children linked yet', text: "Please contact the school office with your child's admission number." } }) %>
+  </section>
+<% } %>
+
+<div class="grid grid-2">
+  <% children.forEach(function (c) {
+       const st = c.todayStatus;
+       const stLabel = st === 'P' ? t('present') : st === 'A' ? t('absent') : st === 'L' ? t('onLeave') : 'Not marked yet';
+       const stTone = st === 'P' ? 'lvl-good' : st === 'A' ? 'lvl-bad' : st === 'L' ? 'lvl-ok' : 'tone-blue'; %>
+    <section class="card child-card">
+      <div class="card-head">
+        <span class="person">
+          <span class="avatar-sm avatar-lg" style="--h: <%= utils.hue(c.full_name) %>" aria-hidden="true"><%= utils.initials(c.full_name) %></span>
+          <span><strong class="display"><%= c.full_name %></strong><small>Class <%= c.class_name %>-<%= c.section %> · Roll <%= c.roll_no || '-' %> · Adm. <%= c.admission_no %></small></span>
+        </span>
+        <a class="btn btn-sm btn-light" href="/parent/child/<%= c.id %>">View details <%- icon('arrow-right') %></a>
+      </div>
+      <div class="stats compact">
+        <div class="stat <%= stTone %>"><span class="n"><%= st || '–' %></span><span class="l">Today: <%= stLabel %></span></div>
+        <div class="stat lvl-<%= utils.level(c.summary.percent) %>"><span class="n"><%= c.summary.percent === null ? '–' : c.summary.percent + '%' %></span><span class="l">Attendance this year</span></div>
+        <div class="stat tone-violet"><span class="n"><%= c.latestExam ? c.latestExam.grade : '–' %></span><span class="l"><%= c.latestExam ? c.latestExam.name + ' (' + c.latestExam.percent + '%)' : 'No results yet' %></span></div>
+      </div>
+      <% if (c.summary.percent !== null && c.summary.percent < 75) { %>
+        <div class="callout callout-bad"><%- icon('alert') %><div>Attendance is below 75%. Please ensure your child attends school regularly.</div></div>
+      <% } %>
+      <div class="divider">Homework due</div>
+      <% if (!c.homework.length) { %><p class="muted small">Nothing due.</p><% } %>
+      <ul class="list-rows">
+        <% c.homework.forEach(function (h) { %><li><span><span class="badge badge-subject"><%= h.subject_name %></span> <%= h.title %></span><small class="muted nowrap">due <%= utils.formatDate(h.due_date) %></small></li><% }) %>
+      </ul>
+    </section>
+  <% }) %>
+</div>
+
+<div class="grid grid-2">
+  <section class="card tone-amber">
+    <div class="card-head"><h2><%- icon('megaphone') %> <%= t('notices') %></h2><a href="/notices" class="small"><%= t('viewAll') %> <%- icon('arrow-right') %></a></div>
+    <%- include('../partials/notice_list', { notices: notices }) %>
+  </section>
+  <section class="card tone-violet">
+    <div class="card-head"><h2><%- icon('calendar') %> Upcoming</h2><a href="/calendar" class="small"><%= t('calendar') %> <%- icon('arrow-right') %></a></div>
+    <%- include('../partials/event_list', { events: events }) %>
+  </section>
+</div>
+<%- include('../partials/footer') %>

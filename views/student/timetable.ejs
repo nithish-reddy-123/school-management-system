@@ -1,0 +1,8 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('timetable'), icon: 'clock', sub: student.class_name ? 'Class ' + student.class_name + '-' + student.section + ' weekly schedule' : '', actions: [{ print: true }] } }) %>
+<section class="card">
+  <% if (timetable) { %><%- include('../partials/timetable', { timetable: timetable }) %><% } else { %>
+    <%- include('../partials/empty', { e: { icon: 'clock', title: 'No class yet', text: 'You are not assigned to a class yet.' } }) %>
+  <% } %>
+</section>
+<%- include('../partials/footer') %>

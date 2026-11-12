@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#1e3a8a">
+  <meta name="view-transition" content="same-origin">
+  <title><%= title %> · <%= schoolName %></title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/theme.js"></script>
+  <script src="/js/app.js" defer></script>
+</head>
+<body class="<%= user ? 'has-user' : 'guest' %>"
+  data-t-show="<%= t('showPassword') %>" data-t-hide="<%= t('hidePassword') %>" data-t-close="<%= t('close') %>"
+  data-t-pause="<%= t('pauseAnim') %>" data-t-play="<%= t('playAnim') %>"
+  data-t-cancel="<%= t('cancel') %>" data-t-confirm="<%= t('confirm') %>">
+  <a class="skip-link" href="#main"><%= t('skipToContent') %></a>
+  <div class="nav-progress" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <% if (user) { %>
+      <button type="button" class="icon-btn only-mobile" data-sidebar-open aria-label="<%= t('menu') %>" aria-controls="sidebar"><%- icon('menu') %></button>
+      <button type="button" class="icon-btn only-desktop" data-sidebar-collapse aria-label="<%= t('collapseMenu') %>" title="<%= t('collapseMenu') %>"><%- icon('panel') %></button>
+    <% } %>
+    <a class="brand" href="/">
+      <img class="brand-logo" src="/img/favicon.svg" alt="" width="38" height="38">
+      <span class="brand-text">
+        <strong><%= schoolName %></strong>
+        <small><% if (school.udise_code) { %>UDISE+ <%= school.udise_code %> · <% } %><%= [...new Set([school.district, school.state].filter(Boolean))].join(', ') %></small>
+      </span>
+    </a>
+
+    <% if (user) { %>
+      <button type="button" class="search-trigger" data-palette-open aria-haspopup="dialog">
+        <%- icon('search') %><span><%= t('quickJump') %></span><kbd>Ctrl K</kbd>
+      </button>
+    <% } %>
+
+    <div class="top-actions">
+      <details class="dropdown lang-menu">
+        <summary class="icon-btn" aria-label="<%= t('language') %>"><%- icon('globe') %><span class="lang-code"><%= lang.toUpperCase() %></span></summary>
+        <div class="menu" role="menu">
+          <% Object.entries(langNames).forEach(function ([code, label]) { %>
+            <a role="menuitem" href="/lang/<%= code %>" lang="<%= code %>" class="<%= code === lang ? 'active' : '' %>"><%= label %><% if (code === lang) { %><%- icon('check-circle') %><% } %></a>
+          <% }) %>
+        </div>
+      </details>
+      <button type="button" class="icon-btn" data-theme-toggle aria-label="<%= t('themeToggle') %>" title="<%= t('themeToggle') %>">
+        <span class="theme-icon-dark"><%- icon('moon') %></span><span class="theme-icon-light"><%- icon('sun') %></span>
+      </button>
+      <% if (!user) { %>
+        <% if (currentPath !== '/login') { %><a class="btn btn-sm btn-primary" href="/login"><%= t('login') %></a><% } %>
+        <% if (currentPath !== '/register') { %><a class="btn btn-sm btn-ghost hide-xs" href="/register"><%= t('register') %></a><% } %>
+      <% } else { %>
+        <details class="dropdown user-menu">
+          <summary class="user-chip">
+            <span class="avatar"><%= user.full_name.trim().charAt(0).toUpperCase() %></span>
+            <span class="who"><%= user.full_name %><em><%= t(user.role) %></em></span>
+            <%- icon('chevron-down', 'chev') %>
+          </summary>
+          <div class="menu menu-right" role="menu">
+            <div class="menu-head"><strong><%= user.full_name %></strong><small>@<%= user.username %> · <%= t(user.role) %></small></div>
+            <a role="menuitem" href="/profile"><%- icon('user') %><%= t('profile') %></a>
+            <a role="menuitem" href="/change-password"><%- icon('key') %><%= t('changePassword') %></a>
+            <button type="button" role="menuitem" data-help-open><%- icon('info') %><%= t('shortcuts') %><kbd class="menu-kbd">?</kbd></button>
+            <form method="post" action="/logout">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" role="menuitem" class="menu-danger"><%- icon('logout') %><%= t('logout') %></button>
+            </form>
+          </div>
+        </details>
+      <% } %>
+    </div>
+  </header>
+
+  <div class="layout">
+    <% if (user) { %>
+      <aside class="sidebar" id="sidebar" aria-label="<%= t('menu') %>">
+        <nav>
+          <% nav.forEach(function (group) { %>
+            <div class="nav-group">
+              <p class="nav-heading"><%= t(group.section) %></p>
+              <ul>
+                <% group.items.forEach(function (item) {
+                     const active = item.href === '/dashboard' ? currentPath === '/dashboard' : currentPath.startsWith(item.href); %>
+                  <li><a href="<%= item.href %>" class="<%= active ? 'active' : '' %>" <%= active ? 'aria-current=page' : '' %> title="<%= t(item.key) %>">
+                    <%- icon(item.icon) %><span class="label"><%= t(item.key) %></span><% if (item.badge) { %><span class="nav-badge"><%= item.badge %></span><% } %>
+                  </a></li>
+                <% }) %>
+              </ul>
+            </div>
+          <% }) %>
+          <div class="nav-group">
+            <p class="nav-heading"><%= t('sec_account') %></p>
+            <ul>
+              <li><a href="/profile" class="<%= currentPath === '/profile' ? 'active' : '' %>" title="<%= t('profile') %>"><%- icon('user') %><span class="label"><%= t('profile') %></span></a></li>
+              <li><a href="/change-password" class="<%= currentPath === '/change-password' ? 'active' : '' %>" title="<%= t('changePassword') %>"><%- icon('key') %><span class="label"><%= t('changePassword') %></span></a></li>
+            </ul>
+          </div>
+        </nav>
+      </aside>
+      <div class="scrim" data-sidebar-close></div>
+    <% } %>
+
+    <main class="content" id="main" tabindex="-1">
+      <% if (flash.length) { %>
+        <div class="toast-region" aria-live="polite">
+          <% flash.forEach(function (f) { const kind = f.type === 'success' ? 'success' : f.type === 'error' ? 'error' : 'info'; %>
+            <div class="toast toast-<%= kind %>" role="<%= kind === 'error' ? 'alert' : 'status' %>" data-autoclose="<%= kind === 'success' && f.message.length < 140 ? '1' : '0' %>">
+              <span class="toast-icon"><%- icon(kind === 'success' ? 'check-circle' : kind === 'error' ? 'alert' : 'info') %></span>
+              <p><%= f.message %></p>
+              <button type="button" class="toast-close" aria-label="<%= t('close') %>" data-toast-close><%- icon('x') %></button>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>

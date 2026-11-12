@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('attendance'), icon: 'check-square', sub: 'Your day-by-day attendance this academic year.' } }) %>
+<div class="grid grid-side">
+  <section class="card">
+    <%- include('../partials/attendance_calendar', { calendar: calendar, baseUrl: '/student/attendance' }) %>
+  </section>
+  <section class="card form-panel">
+    <h2><%- icon('chart') %> This academic year</h2>
+    <div class="ring-wrap">
+      <div class="ring lvl-<%= utils.level(summary.percent) %>" style="--p: <%= summary.percent || 0 %>" role="img" aria-label="Attendance <%= summary.percent === null ? 'not available' : summary.percent + '%' %>"><span><%= summary.percent === null ? '–' : summary.percent + '%' %></span></div>
+      <div class="ring-legend">
+        <span><span class="chip chip-good"><%= summary.present %></span> <%= t('present') %></span>
+        <span><span class="chip chip-bad"><%= summary.absent %></span> <%= t('absent') %></span>
+        <span><span class="chip chip-warn"><%= summary.leave %></span> <%= t('onLeave') %></span>
+        <small class="muted"><%= summary.total %> days marked</small>
+      </div>
+    </div>
+    <% if (summary.percent !== null && summary.percent < 75) { %>
+      <div class="callout callout-bad"><%- icon('alert') %><div>Below the 75% minimum. Please attend regularly.</div></div>
+    <% } else { %>
+      <p class="muted small">A minimum of 75% attendance is generally required.</p>
+    <% } %>
+  </section>
+</div>
+<%- include('../partials/footer') %>

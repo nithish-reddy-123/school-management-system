@@ -1,0 +1,6 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('timetable'), icon: 'clock', sub: 'Your weekly teaching schedule across all classes.', actions: [{ print: true }] } }) %>
+<section class="card">
+  <%- include('../partials/timetable', { timetable: timetable }) %>
+</section>
+<%- include('../partials/footer') %>

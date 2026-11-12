@@ -1,0 +1,20 @@
+<% if (!notices.length) { %><%- include('empty', { e: { icon: 'megaphone', text: 'No notices yet.', compact: true } }) %><% } %>
+<ul class="notice-list">
+  <% notices.forEach(function (n) { %>
+    <li>
+      <div class="notice-title"><%= n.title %>
+        <span class="badge"><%= n.class_name ? 'Class ' + n.class_name + '-' + n.section : (n.audience === 'all' ? 'Everyone' : n.audience.replace('_', ' & ')) %></span>
+      </div>
+      <% if (locals.full) { %><p class="notice-body"><%= n.body %></p><% } else { %><p class="notice-body clamp"><%= n.body %></p><% } %>
+      <div class="notice-meta">
+        <small class="muted"><%= n.posted_by_name || 'School' %> · <%= utils.formatDate(n.created_at) %></small>
+        <% if (locals.canDelete && (user.role === 'headmaster' || n.posted_by === user.id)) { %>
+          <form method="post" action="/notices/<%= n.id %>/delete" class="inline" data-confirm="Delete this notice?">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="link danger" type="submit">Delete</button>
+          </form>
+        <% } %>
+      </div>
+    </li>
+  <% }) %>
+</ul>

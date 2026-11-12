@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('calendar'), icon: 'calendar', sub: 'Academic year ' + year + ' · holidays, exams, PTMs and school events.' } }) %>
+<div class="grid <%= canEdit ? 'grid-side' : '' %>">
+  <section class="card">
+    <div class="legend cal-key">
+      <% Object.entries(types).forEach(function ([k, v]) { %><span class="badge ev-<%= k %>"><%= v %></span><% }) %>
+    </div>
+    <% if (!months.length) { %><%- include('../partials/empty', { e: { icon: 'calendar', title: 'No events yet', text: 'No events have been added for this academic year.' } }) %><% } %>
+    <% months.forEach(function (m) { %>
+      <h3 class="month-title"><%= m.label %></h3>
+      <ul class="event-list timeline">
+        <% m.events.forEach(function (e) { const d = new Date(e.date + 'T00:00:00'); %>
+          <li class="<%= e.date < today ? 'past' : '' %>">
+            <span class="date-chip ev-<%= e.type %>"><b><%= d.getDate() %></b><%= d.toLocaleString('en-IN', { weekday: 'short' }) %></span>
+            <span class="timeline-body">
+              <strong><%= e.title %></strong> <span class="badge ev-<%= e.type %>"><%= types[e.type] %></span>
+              <% if (e.description) { %><br><small class="muted"><%= e.description %></small><% } %>
+            </span>
+            <% if (canEdit) { %>
+              <form method="post" action="/calendar/<%= e.id %>/delete" class="inline" data-confirm="Remove this event?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="link danger" type="submit">Remove</button>
+              </form>
+            <% } %>
+          </li>
+        <% }) %>
+      </ul>
+    <% }) %>
+  </section>
+  <% if (canEdit) { %>
+    <section class="card form-panel tone-violet">
+      <h2><%- icon('plus') %> Add event / holiday</h2>
+      <form method="post" action="/calendar">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label>Title <input name="title" required maxlength="150"></label>
+        <label>Date <input type="date" name="date" required></label>
+        <label>Type
+          <select name="type"><% Object.entries(types).forEach(function ([k, v]) { %><option value="<%= k %>"><%= v %></option><% }) %></select>
+        </label>
+        <label>Description <textarea name="description" rows="3" maxlength="1000"></textarea></label>
+        <button class="btn btn-block" type="submit"><%- icon('plus') %> Add to calendar</button>
+      </form>
+      <p class="muted small">Holidays are skipped in attendance calendars and flagged when teachers mark attendance.</p>
+    </section>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

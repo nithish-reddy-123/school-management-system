@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('homework'), icon: 'notebook', sub: rows.length + ' assignment(s) posted by you.' } }) %>
+<div class="grid grid-side">
+  <section class="card">
+    <h2><%- icon('notebook') %> Posted by me</h2>
+    <% if (!rows.length) { %><%- include('../partials/empty', { e: { icon: 'notebook', title: 'No homework yet', text: 'Use the form to post your first assignment.' } }) %><% } %>
+    <ul class="hw-list">
+      <% rows.forEach(function (h) { %>
+        <li class="<%= h.due_date && h.due_date < today ? 'past' : '' %>">
+          <div class="card-head">
+            <div><span class="badge badge-subject"><%= h.subject_name %></span> <strong><%= h.title %></strong> <small class="muted">· Class <%= h.class_name %>-<%= h.section %></small></div>
+            <form method="post" action="/teacher/homework/<%= h.id %>/delete" class="inline" data-confirm="Delete this homework?">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="link danger" type="submit">Delete</button>
+            </form>
+          </div>
+          <% if (h.description) { %><p><%= h.description %></p><% } %>
+          <small class="muted">Posted <%= utils.formatDate(h.created_at) %><% if (h.due_date) { %> · Due <%= utils.formatDate(h.due_date) %><% } %></small>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+  <section class="card form-panel">
+    <h2><%- icon('plus') %> Assign homework</h2>
+    <% if (!assignments.length) { %><%- include('../partials/empty', { e: { icon: 'book', text: 'No subjects are assigned to you.', compact: true } }) %><% } else { %>
+      <form method="post" action="/teacher/homework">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label>Class &amp; subject
+          <select name="assignment" required>
+            <% assignments.forEach(function (a) { %><option value="<%= a.class_id %>-<%= a.subject_id %>">Class <%= a.class_name %>-<%= a.section %> · <%= a.subject_name %></option><% }) %>
+          </select>
+        </label>
+        <label>Title <input name="title" required maxlength="150"></label>
+        <label>Instructions <textarea name="description" rows="4" maxlength="3000"></textarea></label>
+        <label>Due date <input type="date" name="due_date" min="<%= today %>"></label>
+        <button class="btn btn-block" type="submit"><%- icon('send') %> Post homework</button>
+      </form>
+    <% } %>
+  </section>
+</div>
+<%- include('../partials/footer') %>

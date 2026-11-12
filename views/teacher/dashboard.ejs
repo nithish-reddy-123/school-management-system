@@ -1,0 +1,88 @@
+<%- include('../partials/header') %>
+<section class="welcome reveal">
+  <div>
+    <p class="eyebrow"><%= t(greeting) %> <span class="wave-hand">👋</span></p>
+    <h1><%= user.full_name %></h1>
+    <p><%= new Date(today + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) %></p>
+  </div>
+  <div>
+    <% if (checkin) { %>
+      <span class="badge st-resolved"><%- icon('check-circle') %> <%= checkin.status === 'P' ? 'Checked in ' + (checkin.check_in_time || '') : checkin.status === 'L' ? 'On leave today' : 'Marked absent' %></span>
+    <% } else { %>
+      <form method="post" action="/teacher/checkin" class="inline">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="btn btn-saffron" type="submit"><%- icon('clock') %> Check in for today</button>
+      </form>
+    <% } %>
+  </div>
+</section>
+
+<% if (pendingRegistrations || pendingLeaves) { %>
+  <div class="callout-stack">
+    <% if (pendingRegistrations) { %>
+      <div class="callout callout-warn"><%- icon('user-plus') %><div><strong><%= pendingRegistrations %></strong> student/parent registration(s) from your class need your verification. <a href="/teacher/registrations">Verify now <%- icon('arrow-right') %></a></div></div>
+    <% } %>
+    <% if (pendingLeaves) { %>
+      <div class="callout callout-info"><%- icon('send') %><div>You have <strong><%= pendingLeaves %></strong> pending leave application(s). <a href="/teacher/leaves">Review <%- icon('arrow-right') %></a></div></div>
+    <% } %>
+  </div>
+<% } %>
+
+<div class="grid grid-2">
+  <section class="card">
+    <h2><%- icon('school') %> My classes (class teacher)</h2>
+    <% if (!myClasses.length) { %>
+      <%- include('../partials/empty', { e: { icon: 'school', text: 'You are not the class teacher of any class.', compact: true } }) %>
+    <% } %>
+    <ul class="list-rows">
+      <% myClasses.forEach(function (c) { %>
+        <li>
+          <span class="person"><span class="avatar-sm" style="--h: <%= utils.hue('c' + c.id) %>"><%= c.name %><%= c.section %></span><span><strong>Class <%= c.name %>-<%= c.section %></strong><small><%= c.students %> students</small></span></span>
+          <% if (c.marked) { %>
+            <span class="badge st-resolved">Today <%= c.present %>/<%= c.marked %> present</span>
+          <% } else { %>
+            <a class="btn btn-sm" href="/teacher/attendance?class_id=<%= c.id %>"><%- icon('check-square') %> Mark attendance</a>
+          <% } %>
+        </li>
+      <% }) %>
+    </ul>
+    <div class="divider">Subjects I teach</div>
+    <% if (!assignments.length) { %><p class="muted">No subjects assigned.</p><% } %>
+    <div class="quick">
+      <% assignments.forEach(function (a) { %><span class="badge badge-subject"><%= a.subject_name %> · <%= a.class_name %>-<%= a.section %></span><% }) %>
+    </div>
+  </section>
+  <section class="card tone-violet">
+    <div class="card-head"><h2><%- icon('clock') %> Today's periods</h2><a href="/teacher/timetable" class="small"><%= t('timetable') %> <%- icon('arrow-right') %></a></div>
+    <% if (!todaysPeriods.length) { %>
+      <%- include('../partials/empty', { e: { icon: 'clock', text: 'No periods scheduled today.', compact: true } }) %>
+    <% } %>
+    <ul class="period-list">
+      <% todaysPeriods.forEach(function (p) { %><li><span class="period">P<%= p.period %></span> <strong><%= p.subject %></strong> <small class="muted">Class <%= p.class_name %>-<%= p.section %></small></li><% }) %>
+    </ul>
+  </section>
+</div>
+
+<div class="grid grid-3">
+  <section class="card tone-rose">
+    <h2><%- icon('alert') %> Low attendance in my class</h2>
+    <% if (!lowAttendance.length) { %>
+      <%- include('../partials/empty', { e: { icon: 'check-circle', text: 'No students below 75%.', compact: true } }) %>
+    <% } %>
+    <ul class="list-rows">
+      <% lowAttendance.forEach(function (s) { %>
+        <li><%- include('../partials/person', { pn: { name: s.full_name, href: '/teacher/students/' + s.id, sub: s.present + '/' + s.total + ' days' } }) %> <span class="badge lvl-bad"><%= s.percent %>%</span></li>
+      <% }) %>
+    </ul>
+    <% if (lowAttendance.length) { %><p class="muted small">Consider contacting parents or discussing at the next PTM.</p><% } %>
+  </section>
+  <section class="card tone-amber">
+    <div class="card-head"><h2><%- icon('megaphone') %> <%= t('notices') %></h2><a href="/notices" class="small"><%= t('viewAll') %> <%- icon('arrow-right') %></a></div>
+    <%- include('../partials/notice_list', { notices: notices }) %>
+  </section>
+  <section class="card tone-violet">
+    <div class="card-head"><h2><%- icon('calendar') %> Upcoming</h2><a href="/calendar" class="small"><%= t('calendar') %> <%- icon('arrow-right') %></a></div>
+    <%- include('../partials/event_list', { events: events }) %>
+  </section>
+</div>
+<%- include('../partials/footer') %>

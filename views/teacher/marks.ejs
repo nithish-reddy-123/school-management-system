@@ -1,0 +1,50 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('marks'), icon: 'pen', sub: exam && assignment ? exam.name + ' · Class ' + assignment.class_name + '-' + assignment.section + ' · ' + assignment.subject_name : 'Choose an exam and one of your subjects to enter marks.' } }) %>
+<section class="card">
+  <% if (!assignments.length) { %>
+    <%- include('../partials/empty', { e: { icon: 'book', title: 'No subjects assigned', text: 'No subjects are assigned to you yet. Please ask the headmaster.' } }) %>
+  <% } else if (!exams.length) { %>
+    <%- include('../partials/empty', { e: { icon: 'clipboard', title: 'No exams yet', text: 'No exams have been created for this academic year yet.' } }) %>
+  <% } else { %>
+    <form method="get" action="/teacher/marks" class="toolbar">
+      <select name="exam_id" required aria-label="Exam">
+        <option value="">Select exam</option>
+        <% exams.forEach(function (e) { %><option value="<%= e.id %>" <%= exam && exam.id === e.id ? 'selected' : '' %>><%= e.name %> (max <%= e.max_marks %>)</option><% }) %>
+      </select>
+      <select name="assignment" required aria-label="Class and subject">
+        <option value="">Select class &amp; subject</option>
+        <% assignments.forEach(function (a) { const key = a.class_id + '-' + a.subject_id; %>
+          <option value="<%= key %>" <%= assignment && assignment.class_id === a.class_id && assignment.subject_id === a.subject_id ? 'selected' : '' %>>Class <%= a.class_name %>-<%= a.section %> · <%= a.subject_name %></option>
+        <% }) %>
+      </select>
+      <button class="btn btn-light" type="submit"><%- icon('users') %> Load students</button>
+    </form>
+  <% } %>
+
+  <% if (exam && assignment) { %>
+    <form method="post" action="/teacher/marks">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="exam_id" value="<%= exam.id %>">
+      <input type="hidden" name="class_id" value="<%= assignment.class_id %>">
+      <input type="hidden" name="subject_id" value="<%= assignment.subject_id %>">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th class="num">Roll</th><th>Name</th><th>Marks (out of <%= exam.max_marks %>)</th><th>Grade</th></tr></thead>
+          <tbody>
+            <% students.forEach(function (s) { const p = s.marks === '' ? null : utils.percent(s.marks, exam.max_marks); %>
+              <tr>
+                <td class="num"><%= s.roll_no || '' %></td>
+                <td><%- include('../partials/person', { pn: { name: s.full_name } }) %></td>
+                <td><input class="marks-input" type="number" name="marks_<%= s.id %>" value="<%= s.marks %>" min="0" max="<%= exam.max_marks %>" step="0.5" inputmode="decimal" aria-label="Marks for <%= s.full_name %>"></td>
+                <td><span class="grade g-<%= utils.grade(p) %>"><%= utils.grade(p) %></span></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small">Leave a box empty if marks are not available (for example, the student was absent). Empty boxes remove previously saved marks.</p>
+      <div class="sticky-actions"><button class="btn btn-lg" type="submit"><%- icon('check-circle') %> <%= t('save') %> marks</button></div>
+    </form>
+  <% } %>
+</section>
+<%- include('../partials/footer') %>

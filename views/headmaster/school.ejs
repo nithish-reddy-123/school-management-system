@@ -1,0 +1,50 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('schoolProfile'), icon: 'landmark', sub: 'These details appear on the public home page, login page and report cards.', actions: [{ href: '/', label: 'View home page', icon: 'eye', kind: 'light' }] } }) %>
+<div class="grid grid-side">
+  <section class="card">
+    <form method="post" action="/hm/school" class="form-grid">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label class="span-2">School name (English) <input name="name" value="<%= school.name %>" required maxlength="200"></label>
+      <label>School name (Hindi) <input name="name_hi" value="<%= school.name_hi || '' %>" maxlength="200" lang="hi"></label>
+      <label>School name (Telugu) <input name="name_te" value="<%= school.name_te || '' %>" maxlength="200" lang="te"></label>
+      <label>UDISE+ code <input name="udise_code" value="<%= school.udise_code || '' %>" pattern="\d{11}" maxlength="11" inputmode="numeric" title="11-digit UDISE+ code"></label>
+      <label>Board <input name="board" value="<%= school.board || '' %>" placeholder="e.g. CBSE / State Board"></label>
+      <label>Medium of instruction <input name="medium" value="<%= school.medium || '' %>"></label>
+      <label>School timings <input name="timings" value="<%= school.timings || '' %>" maxlength="120" placeholder="e.g. Monday to Saturday, 9:00 AM – 4:00 PM"></label>
+      <label>Block <input name="block" value="<%= school.block || '' %>"></label>
+      <label>District <input name="district" value="<%= school.district || '' %>"></label>
+      <label>State <input name="state" value="<%= school.state || '' %>"></label>
+      <label>Phone <input name="phone" value="<%= school.phone || '' %>" maxlength="20"></label>
+      <label class="span-2">Address <input name="address" value="<%= school.address || '' %>" maxlength="500"></label>
+      <label class="span-2">Email <input type="email" name="email" value="<%= school.email || '' %>"></label>
+      <label class="span-2">About the school (shown on the home page)
+        <textarea name="about" rows="4" maxlength="2000"><%= school.about || '' %></textarea>
+      </label>
+      <label class="span-2">Facilities (one per line, shown on the home page)
+        <textarea name="facilities" rows="6" maxlength="2000"><%= school.facilities || '' %></textarea>
+      </label>
+      <div class="span-2 form-actions"><button class="btn btn-lg" type="submit"><%- icon('check-circle') %> <%= t('save') %></button></div>
+    </form>
+  </section>
+
+  <section class="card form-panel">
+    <h2><%- icon('eye') %> School photo</h2>
+    <img class="photo-preview" src="/school-photo" alt="Current school photo">
+    <p class="muted small"><%= school.photo ? 'This photo is shown on the home page and login page.' : 'No photo uploaded yet; the home page shows a default illustration.' %></p>
+    <form method="post" action="/hm/school/photo" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label>Upload new photo (JPG, PNG or WebP, max 3 MB)
+        <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required>
+      </label>
+      <button class="btn btn-block" type="submit"><%- icon('arrow-up') %> Upload</button>
+    </form>
+    <% if (school.photo) { %>
+      <form method="post" action="/hm/school/photo/delete" data-confirm="Remove the school photo?">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="link danger" type="submit">Remove photo</button>
+      </form>
+    <% } %>
+    <p class="muted small">Tip: a wide landscape photo of the school building (for example 1200 × 700 pixels) looks best.</p>
+  </section>
+</div>
+<%- include('../partials/footer') %>

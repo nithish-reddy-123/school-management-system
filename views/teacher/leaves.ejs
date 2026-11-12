@@ -1,0 +1,33 @@
+<%- include('../partials/header') %>
+<% const pending = rows.filter(function (r) { return r.status === 'pending'; }).length; %>
+<%- include('../partials/page_head', { ph: { title: t('leave'), icon: 'send', sub: pending ? pending + ' application(s) waiting for your decision.' : 'Leave applications from parents of your class.' } }) %>
+<section class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Student</th><th>Dates</th><th>Reason</th><th>Applied by</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <% if (!rows.length) { %><tr><td colspan="6" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'send', title: 'No leave applications', text: 'Applications from parents of your class will appear here.' } }) %></td></tr><% } %>
+        <% rows.forEach(function (r) { %>
+          <tr>
+            <td><%- include('../partials/person', { pn: { name: r.student_name, sub: 'Class ' + r.class_name + '-' + r.section + ' · Roll ' + (r.roll_no || '-') } }) %></td>
+            <td class="nowrap"><%= utils.formatDate(r.from_date) %><% if (r.to_date !== r.from_date) { %> <%- icon('arrow-right', 'inline-icon') %> <%= utils.formatDate(r.to_date) %><% } %></td>
+            <td><%= r.reason %></td>
+            <td><%= r.parent_name || '' %><% if (r.parent_phone) { %><br><a class="small" href="tel:<%= r.parent_phone %>"><%- icon('phone', 'inline-icon') %> <%= r.parent_phone %></a><% } %></td>
+            <td><span class="badge st-<%= r.status %>"><%= r.status %></span></td>
+            <td class="actions">
+              <% if (r.status === 'pending') { %>
+                <form method="post" action="/teacher/leaves/<%= r.id %>" class="inline btn-pair">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button class="btn btn-sm" name="status" value="approved" type="submit"><%- icon('check-circle') %> Approve</button>
+                  <button class="btn btn-sm btn-danger" name="status" value="rejected" type="submit"><%- icon('x') %> Reject</button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted small">Approving a leave changes any "Absent" marks within those dates to "Leave".</p>
+</section>
+<%- include('../partials/footer') %>

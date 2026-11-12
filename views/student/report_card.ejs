@@ -1,0 +1,17 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('reportCard'), icon: 'file-text', sub: 'Results for all exams this academic year.', actions: [{ print: true }] } }) %>
+<section class="card printable">
+  <div class="rc-head">
+    <div class="person">
+      <img class="brand-logo" src="/img/favicon.svg" alt="" width="38" height="38">
+      <span><strong class="display"><%= school.name %></strong><small><%= school.address || '' %><% if (school.udise_code) { %> · UDISE+ <%= school.udise_code %><% } %></small></span>
+    </div>
+    <div class="rc-student">
+      <strong class="display"><%= student.full_name %></strong><br>
+      <small>Class <%= student.class_name %>-<%= student.section %> · Roll <%= student.roll_no || '-' %> · Adm. <%= student.admission_no %></small><br>
+      <small>Attendance: <%= summary.present %>/<%= summary.total %> days (<%= summary.percent === null ? '–' : summary.percent + '%' %>)</small>
+    </div>
+  </div>
+  <%- include('../partials/report_card', { exams: exams }) %>
+</section>
+<%- include('../partials/footer') %>

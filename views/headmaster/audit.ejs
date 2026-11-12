@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('auditLog'), icon: 'shield', sub: 'Latest 300 security events: sign-ins, failed sign-ins, account changes and password resets.' } }) %>
+<section class="card">
+  <div class="toolbar">
+    <label class="search-field grow"><span class="sr-only"><%= t('search') %></span><%- icon('search') %>
+      <input type="search" data-filter-table="#auditTable" placeholder="Filter by user, action or IP">
+    </label>
+    <span class="result-count"><span data-filter-count="#auditTable"><%= rows.length %></span> <%= t('results') %></span>
+  </div>
+  <div class="table-wrap">
+    <table class="table compact" id="auditTable">
+      <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th><th>IP</th></tr></thead>
+      <tbody>
+        <% if (!rows.length) { %><tr><td colspan="5" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'shield', text: 'No events recorded yet.', compact: true } }) %></td></tr><% } %>
+        <% rows.forEach(function (r) { %>
+          <tr class="<%= r.action === 'login_failed' ? 'warn-row' : '' %>">
+            <td class="nowrap"><%= utils.formatDate(r.created_at) %> <span class="muted"><%= r.created_at.slice(11, 16) %></span></td>
+            <td><%= r.full_name ? r.full_name + ' (' + r.role + ')' : '—' %></td>
+            <td><span class="badge <%= r.action === 'login_failed' ? 'st-rejected' : r.action === 'login' ? 'st-resolved' : '' %>"><%= r.action.replace(/_/g, ' ') %></span></td>
+            <td class="small"><%= r.details || '' %></td>
+            <td class="small muted"><%= r.ip || '' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>

@@ -1,0 +1,72 @@
+<% const s = overview.student; const sum = overview.summary; %>
+<div class="grid grid-2">
+  <section class="card">
+    <div class="profile-head">
+      <span class="avatar-sm avatar-lg" style="--h: <%= utils.hue(s.full_name) %>" aria-hidden="true"><%= utils.initials(s.full_name) %></span>
+      <div>
+        <h2 class="profile-name"><%= s.full_name %></h2>
+        <p class="muted small"><%= s.class_name ? 'Class ' + s.class_name + '-' + s.section : 'No class' %><% if (s.roll_no) { %> · Roll <%= s.roll_no %><% } %> · Adm. <%= s.admission_no %></p>
+      </div>
+    </div>
+    <dl class="dl">
+      <dt>Class teacher</dt><dd><%= s.class_teacher_name || '-' %></dd>
+      <dt>Date of birth</dt><dd><%= utils.formatDate(s.dob) || '-' %></dd>
+      <dt>Gender</dt><dd><%= utils.GENDERS[s.gender] || '-' %></dd>
+      <dt>Social category</dt><dd><%= utils.CATEGORIES[s.category] || '-' %></dd>
+      <dt>APAAR ID</dt><dd><%= s.apaar_id ? '•••• •••• ' + s.apaar_id.slice(-4) : 'Not generated' %></dd>
+      <dt>Aadhaar</dt><dd><%= s.aadhaar_last4 ? 'XXXX-XXXX-' + s.aadhaar_last4 : 'Not seeded' %></dd>
+      <dt>CWSN / BPL</dt><dd><%= s.is_cwsn ? 'CWSN' : '–' %> / <%= s.is_bpl ? 'BPL' : '–' %></dd>
+      <% if (overview.parents.length) { %>
+        <dt>Parents</dt>
+        <dd><% overview.parents.forEach(function (p, i) { %><%= i ? ', ' : '' %><%= p.full_name %><%= p.relation ? ' (' + p.relation + ')' : '' %><%= p.phone ? ' · ' + p.phone : '' %><% }) %></dd>
+      <% } %>
+    </dl>
+  </section>
+  <section class="card">
+    <h2><%- icon('check-square') %> Attendance this academic year</h2>
+    <div class="ring-wrap">
+      <div class="ring lvl-<%= utils.level(sum.percent) %>" style="--p: <%= sum.percent || 0 %>" role="img" aria-label="Attendance <%= sum.percent === null ? 'not available' : sum.percent + '%' %>"><span><%= sum.percent === null ? '–' : sum.percent + '%' %></span></div>
+      <div class="ring-legend">
+        <span><span class="chip chip-good"><%= sum.present %></span> present</span>
+        <span><span class="chip chip-bad"><%= sum.absent %></span> absent</span>
+        <span><span class="chip chip-warn"><%= sum.leave %></span> leave</span>
+        <small class="muted"><%= sum.total %> days marked</small>
+      </div>
+    </div>
+    <% if (sum.percent !== null && sum.percent < 75) { %>
+      <div class="callout callout-bad"><%- icon('alert') %><div>Attendance is below the 75% minimum. Please ensure regular attendance.</div></div>
+    <% } %>
+    <%- include('attendance_calendar', { calendar: overview.calendar, baseUrl: baseUrl }) %>
+  </section>
+</div>
+
+<section class="card">
+  <div class="card-head"><h2><%- icon('file-text') %> Report card</h2><button type="button" class="btn btn-sm btn-light" data-print><%- icon('printer') %> Print</button></div>
+  <%- include('report_card', { exams: overview.exams }) %>
+</section>
+
+<div class="grid grid-3">
+  <section class="card tone-violet">
+    <h2><%- icon('cap') %> Scholarships</h2>
+    <% if (!overview.scholarships.length) { %><%- include('empty', { e: { icon: 'cap', text: 'None recorded.', compact: true } }) %><% } %>
+    <ul class="list-rows">
+      <% overview.scholarships.forEach(function (sc) { %>
+        <li><span class="person"><span><strong><%= sc.scheme_name %></strong><small><%= sc.academic_year %><% if (sc.amount) { %> · ₹<%= sc.amount %><% } %></small></span></span>
+          <span class="badge st-<%= sc.status %>"><%= sc.status %></span></li>
+      <% }) %>
+    </ul>
+  </section>
+  <section class="card tone-green">
+    <h2><%- icon('backpack') %> Free entitlements received</h2>
+    <% if (!overview.entitlements.length) { %><%- include('empty', { e: { icon: 'backpack', text: 'None recorded.', compact: true } }) %><% } %>
+    <ul class="list-rows">
+      <% overview.entitlements.forEach(function (e) { %>
+        <li><span><%- icon('check-circle') %> <%= e.item %></span><small class="muted"><%= e.academic_year %> · <%= utils.formatDate(e.distributed_on) %></small></li>
+      <% }) %>
+    </ul>
+  </section>
+  <section class="card">
+    <h2><%- icon('notebook') %> Recent homework</h2>
+    <%- include('homework_list', { homework: overview.homework.slice(0, 5) }) %>
+  </section>
+</div>

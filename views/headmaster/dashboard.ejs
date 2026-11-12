@@ -1,0 +1,110 @@
+<%- include('../partials/header') %>
+<section class="welcome reveal">
+  <div>
+    <p class="eyebrow"><%= t(greeting) %> <span class="wave-hand">👋</span></p>
+    <h1><%= user.full_name %></h1>
+    <p><%= new Date(today + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) %></p>
+  </div>
+  <div class="quick">
+    <a class="btn btn-saffron" href="/hm/users/new?role=student"><%- icon('user-plus') %> Admit student</a>
+    <a class="btn btn-light" href="/hm/reports/attendance"><%- icon('chart') %> Reports</a>
+  </div>
+</section>
+
+<div class="stats">
+  <a class="stat tone-blue" href="/hm/users?role=student"><span class="n"><%= counts.students %></span><span class="l"><%= t('students') %></span><span class="stat-icon"><%- icon('backpack') %></span></a>
+  <a class="stat tone-violet" href="/hm/users?role=teacher"><span class="n"><%= counts.teachers %></span><span class="l"><%= t('teachers') %></span><span class="stat-icon"><%- icon('pen') %></span></a>
+  <a class="stat tone-amber" href="/hm/users?role=parent"><span class="n"><%= counts.parents %></span><span class="l"><%= t('parents') %></span><span class="stat-icon"><%- icon('heart') %></span></a>
+  <a class="stat tone-teal" href="/hm/classes"><span class="n"><%= counts.classes %></span><span class="l"><%= t('classes') %></span><span class="stat-icon"><%- icon('school') %></span></a>
+  <a class="stat lvl-<%= utils.level(att.percent) %>" href="/hm/reports/attendance?from=<%= today %>&to=<%= today %>"><span class="n"><%= att.percent === null ? '–' : att.percent + '%' %></span><span class="l">Student attendance today (<%= att.present %>/<%= att.total %>)</span><span class="stat-icon"><%- icon('check-square') %></span></a>
+  <a class="stat tone-green" href="/hm/staff-attendance"><span class="n"><%= staff.present %>/<%= staff.total %></span><span class="l">Staff present today</span><span class="stat-icon"><%- icon('user-check') %></span></a>
+  <a class="stat <%= counts.open_grievances ? 'lvl-bad' : 'tone-green' %>" href="/hm/grievances"><span class="n"><%= counts.open_grievances %></span><span class="l">Open grievances</span><span class="stat-icon"><%- icon('message') %></span></a>
+  <a class="stat tone-rose" href="/hm/scholarships"><span class="n"><%= counts.pending_scholarships %></span><span class="l">Scholarships pending</span><span class="stat-icon"><%- icon('cap') %></span></a>
+</div>
+
+<% if (pendingRegistrations || holiday || unmarked.length || !mdmToday) { %>
+  <div class="callout-stack">
+    <% if (pendingRegistrations) { %>
+      <div class="callout callout-warn"><%- icon('user-plus') %><div><strong><%= pendingRegistrations %></strong> registration(s) waiting for your verification (teachers, or students/parents without a class teacher). <a href="/hm/registrations">Review now <%- icon('arrow-right') %></a></div></div>
+    <% } %>
+    <% if (holiday) { %>
+      <div class="callout callout-info"><%- icon('calendar') %><div>Today is a holiday or Sunday.</div></div>
+    <% } else { %>
+      <% if (unmarked.length) { %>
+        <div class="callout callout-warn"><%- icon('clock') %><div><strong>Attendance not yet marked today:</strong>
+          <% unmarked.forEach(function (c, i) { %><%= i ? ', ' : '' %>Class <%= c.name %>-<%= c.section %> (<%= c.class_teacher_name || 'no class teacher' %>)<% }) %></div></div>
+      <% } %>
+      <% if (!mdmToday) { %>
+        <div class="callout callout-warn"><%- icon('bowl') %><div><strong>Mid-day meal</strong> for today has not been recorded. <a href="/hm/mdm">Record now <%- icon('arrow-right') %></a></div></div>
+      <% } %>
+    <% } %>
+  </div>
+<% } %>
+
+<div class="grid grid-2">
+  <section class="card">
+    <div class="card-head"><h2><%- icon('chart') %> Class-wise attendance this month</h2><a href="/hm/reports/attendance" class="small">Report <%- icon('arrow-right') %></a></div>
+    <% if (!classAttendance.length) { %>
+      <%- include('../partials/empty', { e: { icon: 'school', title: 'No classes yet', text: 'Create classes to start tracking attendance.', href: '/hm/classes', cta: 'Create a class', compact: true } }) %>
+    <% } %>
+    <div class="bars">
+      <% classAttendance.forEach(function (c) { %>
+        <div class="bar-row">
+          <a href="/hm/reports/attendance?class_id=<%= c.id %>" class="bar-label">Class <%= c.name %>-<%= c.section %></a>
+          <div class="bar"><span class="lvl-<%= utils.level(c.percent) %>" style="width: <%= c.percent || 0 %>%"></span></div>
+          <span class="bar-val"><%= c.percent === null ? '–' : c.percent + '%' %></span>
+        </div>
+      <% }) %>
+    </div>
+  </section>
+
+  <section class="card tone-teal">
+    <h2><%- icon('users') %> Enrolment snapshot (UDISE+)</h2>
+    <div class="grid grid-2 tight">
+      <table class="table compact">
+        <thead><tr><th>Gender</th><th class="num">Students</th></tr></thead>
+        <tbody><% gender.forEach(function (g) { %><tr><td><%= GENDERS[g.k] || 'Not recorded' %></td><td class="num"><%= g.n %></td></tr><% }) %></tbody>
+      </table>
+      <table class="table compact">
+        <thead><tr><th>Category</th><th class="num">Students</th></tr></thead>
+        <tbody><% category.forEach(function (c) { %><tr><td><%= CATEGORIES[c.k] || 'Not recorded' %></td><td class="num"><%= c.n %></td></tr><% }) %></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<div class="grid grid-3">
+  <section class="card tone-rose">
+    <h2><%- icon('alert') %> Low attendance (&lt; 75%)</h2>
+    <% if (!lowAttendance.length) { %>
+      <%- include('../partials/empty', { e: { icon: 'check-circle', text: 'No students below 75% this academic year.', compact: true } }) %>
+    <% } %>
+    <ul class="list-rows">
+      <% lowAttendance.forEach(function (s) { %>
+        <li><%- include('../partials/person', { pn: { name: s.full_name, href: '/hm/users/' + s.id, sub: 'Class ' + s.class_name + '-' + s.section } }) %>
+          <span class="badge lvl-bad"><%= s.percent %>%</span></li>
+      <% }) %>
+    </ul>
+  </section>
+  <section class="card tone-amber">
+    <div class="card-head"><h2><%- icon('megaphone') %> <%= t('notices') %></h2><a href="/notices" class="small"><%= t('viewAll') %> <%- icon('arrow-right') %></a></div>
+    <%- include('../partials/notice_list', { notices: notices }) %>
+  </section>
+  <section class="card tone-violet">
+    <div class="card-head"><h2><%- icon('calendar') %> Upcoming</h2><a href="/calendar" class="small"><%= t('calendar') %> <%- icon('arrow-right') %></a></div>
+    <%- include('../partials/event_list', { events: events }) %>
+  </section>
+</div>
+
+<section class="card">
+  <h2><%- icon('sparkles') %> Quick actions</h2>
+  <div class="quick">
+    <a class="btn" href="/hm/users/new?role=student"><%- icon('plus') %> Admit student</a>
+    <a class="btn" href="/hm/users/new?role=teacher"><%- icon('plus') %> Add teacher</a>
+    <a class="btn" href="/hm/users/new?role=parent"><%- icon('plus') %> Add parent</a>
+    <a class="btn btn-light" href="/hm/mdm"><%- icon('bowl') %> Mid-day meal entry</a>
+    <a class="btn btn-light" href="/hm/reports/attendance"><%- icon('chart') %> Attendance report</a>
+    <a class="btn btn-light" href="/notices"><%- icon('megaphone') %> Publish notice</a>
+  </div>
+</section>
+<%- include('../partials/footer') %>

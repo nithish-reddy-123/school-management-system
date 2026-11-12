@@ -1,0 +1,37 @@
+<%
+// Small animated SVG scenes for the "How it works" steps. Decorative only.
+const P = 'none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round';
+%>
+<% if (art === 'step1') { %>
+  <svg viewBox="0 0 200 120" fill="none" aria-hidden="true" style="color: var(--primary)">
+    <rect x="52" y="22" width="96" height="76" rx="8" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+    <line class="sa sa-type" x1="66" y1="44" x2="134" y2="44" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <line class="sa sa-type d2" x1="66" y1="60" x2="134" y2="60" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <line class="sa sa-type d3" x1="66" y1="76" x2="110" y2="76" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <g class="sa sa-pen"><path d="M150 70l14-14 10 10-14 14z" fill="var(--accent)"/><path d="M150 70l-4 14 14-4z" fill="currentColor"/></g>
+  </svg>
+<% } else if (art === 'step2') { %>
+  <svg viewBox="0 0 200 120" fill="none" aria-hidden="true" style="color: var(--good)">
+    <path d="M100 26l34 12v20c0 24-16 34-34 40-18-6-34-16-34-40V38z" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+    <circle class="sa sa-ring" cx="100" cy="66" r="26" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path class="sa sa-check" d="M86 66l10 10 20-22" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+<% } else if (art === 'step3') { %>
+  <svg viewBox="0 0 200 120" fill="none" aria-hidden="true" style="color: var(--purple)">
+    <circle class="sa sa-pop" cx="60" cy="48" r="15" fill="var(--purple-bg)" stroke="currentColor" stroke-width="2.5"/>
+    <circle class="sa sa-pop d2" cx="100" cy="42" r="17" fill="var(--purple-bg)" stroke="currentColor" stroke-width="2.5"/>
+    <circle class="sa sa-pop d3" cx="140" cy="48" r="15" fill="var(--purple-bg)" stroke="currentColor" stroke-width="2.5"/>
+    <path class="sa sa-pop" d="M40 92c0-13 9-22 20-22s20 9 20 22" fill="none" stroke="currentColor" stroke-width="2.5"/>
+    <path class="sa sa-pop d2" d="M78 96c0-14 10-24 22-24s22 10 22 24" fill="none" stroke="currentColor" stroke-width="2.5"/>
+    <path class="sa sa-pop d3" d="M120 92c0-13 9-22 20-22s20 9 20 22" fill="none" stroke="currentColor" stroke-width="2.5"/>
+  </svg>
+<% } else { %>
+  <svg viewBox="0 0 200 120" fill="none" aria-hidden="true" style="color: var(--primary)">
+    <line x1="40" y1="96" x2="168" y2="96" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+    <rect class="sa sa-bar" x="52" y="60" width="18" height="36" rx="3" fill="var(--accent)"/>
+    <rect class="sa sa-bar d2" x="82" y="44" width="18" height="52" rx="3" fill="var(--primary)"/>
+    <rect class="sa sa-bar d3" x="112" y="52" width="18" height="44" rx="3" fill="var(--good)"/>
+    <rect class="sa sa-bar d4" x="142" y="32" width="18" height="64" rx="3" fill="var(--purple)"/>
+    <path class="sa sa-line" d="M52 70l30-14 30 8 30-20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+<% } %>

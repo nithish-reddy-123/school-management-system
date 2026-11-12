@@ -1,0 +1,64 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: (isEdit ? 'Edit ' : 'Add ') + t(v.role), icon: isEdit ? 'pen' : 'user-plus', sub: isEdit ? v.full_name : 'Fields marked required must be filled in.' } }) %>
+<% if (error) { %><div class="callout callout-bad" role="alert"><%- icon('alert') %><div><%= error %></div></div><% } %>
+<section class="card">
+  <form method="post" action="<%= isEdit ? '/hm/users/' + v.id : '/hm/users' %>" class="form-grid">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="role" value="<%= v.role %>">
+
+    <h3 class="span-2">Login &amp; contact</h3>
+    <label>Username
+      <input name="username" value="<%= v.username %>" <%= isEdit ? 'disabled' : 'required' %> pattern="[A-Za-z0-9._\-]{3,30}" maxlength="30" autocomplete="off">
+      <% if (!isEdit) { %><small class="muted">A temporary password is generated automatically and shown once after saving.</small><% } %>
+    </label>
+    <label>Full name <input name="full_name" value="<%= v.full_name %>" required maxlength="120"></label>
+    <label>Mobile number <input name="phone" value="<%= v.phone %>" pattern="[6-9]\d{9}" maxlength="10" inputmode="numeric" title="10-digit mobile number"></label>
+    <label>Email <input type="email" name="email" value="<%= v.email %>" maxlength="120"></label>
+
+    <% if (v.role === 'student') { %>
+      <h3 class="span-2">Admission details</h3>
+      <label>Admission number <input name="admission_no" value="<%= v.admission_no %>" required maxlength="30"></label>
+      <label>Class
+        <select name="class_id" required>
+          <option value="">Select class</option>
+          <% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= String(c.id) === String(v.class_id) ? 'selected' : '' %>>Class <%= c.name %>-<%= c.section %></option><% }) %>
+        </select>
+      </label>
+      <label>Roll number <input type="number" name="roll_no" value="<%= v.roll_no %>" min="1" max="999"></label>
+      <label>Date of birth <input type="date" name="dob" value="<%= v.dob %>"></label>
+      <label>Gender
+        <select name="gender"><option value="">Select</option><% Object.entries(GENDERS).forEach(function ([k, l]) { %><option value="<%= k %>" <%= v.gender === k ? 'selected' : '' %>><%= l %></option><% }) %></select>
+      </label>
+      <label>Social category
+        <select name="category"><option value="">Select</option><% Object.entries(CATEGORIES).forEach(function ([k, l]) { %><option value="<%= k %>" <%= v.category === k ? 'selected' : '' %>><%= l %></option><% }) %></select>
+      </label>
+      <label>APAAR ID (12 digits) <input name="apaar_id" value="<%= v.apaar_id %>" pattern="\d{12}" maxlength="12" inputmode="numeric"></label>
+      <label>Aadhaar – last 4 digits only <input name="aadhaar_last4" value="<%= v.aadhaar_last4 %>" pattern="\d{4}" maxlength="4" inputmode="numeric">
+        <small class="muted">For privacy, the full Aadhaar number is never stored.</small></label>
+      <label class="check"><input type="checkbox" name="is_cwsn" value="1" <%= Number(v.is_cwsn) ? 'checked' : '' %>> Child with special needs (CWSN)</label>
+      <label class="check"><input type="checkbox" name="is_bpl" value="1" <%= Number(v.is_bpl) ? 'checked' : '' %>> Below poverty line (BPL)</label>
+      <label class="span-2">Address <input name="address" value="<%= v.address %>" maxlength="500"></label>
+    <% } %>
+
+    <% if (v.role === 'teacher' || v.role === 'headmaster') { %>
+      <h3 class="span-2">Service details</h3>
+      <label>Employee ID <input name="employee_id" value="<%= v.employee_id %>" maxlength="30"></label>
+      <label>Designation <input name="designation" value="<%= v.designation %>" placeholder="e.g. TGT Mathematics, PRT, Shiksha Mitra" maxlength="80"></label>
+      <label>Qualification <input name="qualification" value="<%= v.qualification %>" maxlength="120"></label>
+      <label>Joining date <input type="date" name="joining_date" value="<%= v.joining_date %>"></label>
+    <% } %>
+
+    <% if (v.role === 'parent' && !isEdit) { %>
+      <h3 class="span-2">Link children</h3>
+      <label>Children's admission numbers <input name="children" value="<%= v.children %>" placeholder="e.g. 2026001, 2025009">
+        <small class="muted">Separate multiple admission numbers with commas.</small></label>
+      <label>Relation <input name="relation" value="<%= v.relation %>" placeholder="Father / Mother / Guardian" maxlength="30"></label>
+    <% } %>
+
+    <div class="span-2 form-actions">
+      <button class="btn btn-lg" type="submit"><%- icon('check-circle') %> <%= t('save') %></button>
+      <a class="btn btn-light btn-lg" href="<%= isEdit ? '/hm/users/' + v.id : '/hm/users?role=' + v.role %>"><%= t('cancel') %></a>
+    </div>
+  </form>
+</section>
+<%- include('../partials/footer') %>

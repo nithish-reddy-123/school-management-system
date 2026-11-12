@@ -1,0 +1,58 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('scholarships'), icon: 'cap', sub: 'Track scholarship applications for academic year ' + year + '.' } }) %>
+<% const tones = { applied: 'tone-amber', verified: 'tone-blue', sanctioned: 'tone-violet', disbursed: 'tone-green', rejected: 'tone-rose' };
+   const icons = { applied: 'send', verified: 'shield', sanctioned: 'check-square', disbursed: 'check-circle', rejected: 'x' }; %>
+<div class="stats">
+  <% SCHOLARSHIP_STATUS.forEach(function (st) { const s = summary.find(function (x) { return x.status === st; }) || { n: 0, amount: 0 }; %>
+    <a class="stat <%= tones[st] %>" href="/hm/scholarships?status=<%= st %>"><span class="n"><%= s.n %></span><span class="l"><span class="cap"><%= st %></span> · ₹<%= Number(s.amount).toLocaleString('en-IN') %></span><span class="stat-icon"><%- icon(icons[st]) %></span></a>
+  <% }) %>
+</div>
+<div class="grid grid-side">
+  <section class="card">
+    <nav class="tabs" aria-label="Status">
+      <a href="/hm/scholarships" class="<%= !status ? 'active' : '' %>"><%= t('all') %></a>
+      <% SCHOLARSHIP_STATUS.forEach(function (st) { %><a href="/hm/scholarships?status=<%= st %>" class="<%= st === status ? 'active' : '' %>"><%= st %></a><% }) %>
+    </nav>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Student</th><th>Scheme</th><th class="num">Amount</th><th>Status</th><th>Update</th></tr></thead>
+        <tbody>
+          <% if (!rows.length) { %><tr><td colspan="5" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'cap', title: 'No records', text: 'Record an application using the form.' } }) %></td></tr><% } %>
+          <% rows.forEach(function (r) { %>
+            <tr>
+              <td><%- include('../partials/person', { pn: { name: r.full_name, href: '/hm/users/' + r.student_id, sub: r.admission_no + ' · ' + r.class_name + '-' + r.section + (r.category ? ' · ' + r.category : '') } }) %></td>
+              <td><%= r.scheme_name %><br><small class="muted"><%= r.academic_year %> · applied <%= utils.formatDate(r.applied_on) %></small></td>
+              <td class="num"><%= r.amount ? '₹' + Number(r.amount).toLocaleString('en-IN') : '' %></td>
+              <td><span class="badge st-<%= r.status %>"><%= r.status %></span></td>
+              <td>
+                <form method="post" action="/hm/scholarships/<%= r.id %>/status" class="filters tight">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <select name="status" aria-label="New status"><% SCHOLARSHIP_STATUS.forEach(function (st) { %><option <%= st === r.status ? 'selected' : '' %>><%= st %></option><% }) %></select>
+                  <button class="btn btn-sm btn-light" type="submit">Set</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="card form-panel tone-violet">
+    <h2><%- icon('plus') %> Record application</h2>
+    <form method="post" action="/hm/scholarships">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label>Student admission no. <input name="admission_no" required maxlength="30"></label>
+      <label>Scheme
+        <input name="scheme_name" list="schemes" required maxlength="150">
+        <datalist id="schemes"><% SCHEMES.forEach(function (s) { %><option value="<%= s %>"><% }) %></datalist>
+      </label>
+      <label>Amount (₹) <input type="number" name="amount" min="0" step="1"></label>
+      <label>Status <select name="status"><% SCHOLARSHIP_STATUS.forEach(function (st) { %><option><%= st %></option><% }) %></select></label>
+      <label>Applied on <input type="date" name="applied_on" value="<%= today %>"></label>
+      <label>Remarks <input name="remarks" maxlength="300" placeholder="e.g. NSP application ID"></label>
+      <button class="btn btn-block" type="submit"><%- icon('check-circle') %> <%= t('save') %></button>
+    </form>
+    <p class="muted small">Central schemes are usually applied for on the National Scholarship Portal (NSP); use this register to track their status.</p>
+  </section>
+</div>
+<%- include('../partials/footer') %>

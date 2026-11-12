@@ -1,0 +1,8 @@
+<%- include('../partials/header') %>
+<% const st = overview.student; %>
+<%- include('../partials/page_head', { ph: {
+  title: st.full_name, icon: 'backpack', sub: 'Class ' + st.class_name + '-' + st.section + ' · Adm. ' + st.admission_no,
+  actions: [{ href: '/teacher/students?class_id=' + st.class_id, label: 'Back to class', icon: 'chevron-left', kind: 'light' }],
+} }) %>
+<%- include('../partials/student_overview', { overview: overview, baseUrl: '/teacher/students/' + st.id }) %>
+<%- include('../partials/footer') %>

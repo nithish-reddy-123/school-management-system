@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('leave'), icon: 'send', sub: 'Apply for leave and track the class teacher\'s decision.' } }) %>
+<div class="grid grid-side">
+  <section class="card">
+    <h2><%- icon('clipboard') %> My applications</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Child</th><th>Dates</th><th>Reason</th><th>Status</th></tr></thead>
+        <tbody>
+          <% if (!rows.length) { %><tr><td colspan="4" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'send', title: 'No applications yet', text: 'Use the form to apply for leave.' } }) %></td></tr><% } %>
+          <% rows.forEach(function (r) { %>
+            <tr>
+              <td><%- include('../partials/person', { pn: { name: r.student_name } }) %></td>
+              <td class="nowrap"><%= utils.formatDate(r.from_date) %><% if (r.to_date !== r.from_date) { %> <%- icon('arrow-right', 'inline-icon') %> <%= utils.formatDate(r.to_date) %><% } %></td>
+              <td><%= r.reason %></td>
+              <td><span class="badge st-<%= r.status %>"><%= r.status %></span><% if (r.reviewed_by_name) { %><br><small class="muted">by <%= r.reviewed_by_name %></small><% } %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="card form-panel tone-amber">
+    <h2><%- icon('plus') %> <%= t('applyLeave') %></h2>
+    <% if (!children.length) { %><%- include('../partials/empty', { e: { icon: 'heart', text: 'No children linked to your account.', compact: true } }) %><% } else { %>
+      <form method="post" action="/parent/leave">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label>Child
+          <select name="student_id" required><% children.forEach(function (c) { %><option value="<%= c.id %>"><%= c.full_name %> (Class <%= c.class_name %>-<%= c.section %>)</option><% }) %></select>
+        </label>
+        <div class="form-grid">
+          <label>From <input type="date" name="from_date" required value="<%= today %>"></label>
+          <label>To <input type="date" name="to_date" required value="<%= today %>"></label>
+        </div>
+        <label>Reason <textarea name="reason" rows="3" required maxlength="1000"></textarea></label>
+        <button class="btn btn-block" type="submit"><%- icon('send') %> Send to class teacher</button>
+      </form>
+    <% } %>
+  </section>
+</div>
+<%- include('../partials/footer') %>

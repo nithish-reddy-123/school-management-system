@@ -1,0 +1,56 @@
+<%
+/*
+ * Page header with breadcrumbs, icon, title, subtitle and actions.
+ * Usage: include('../partials/page_head', { ph: { title, sub, icon, badges, actions: [{ href, label, icon, kind, print, post, confirm }] } })
+ *   kind: 'primary' (default) | 'light' | 'saffron' | 'ghost' | 'danger'. print: true renders a print button.
+ *   post: URL renders a CSRF-protected POST button; confirm: text shows a confirmation dialog first.
+ *   badges: [{ label, cls }] shown next to the title.
+ * Breadcrumbs come from res.locals.crumb (the navigation item matching the current URL).
+ */
+const p = locals.ph || {};
+const c = locals.crumb;
+const pageIcon = p.icon || (c && c.icon) || 'file-text';
+%>
+<header class="page-header">
+  <div class="page-header-main">
+    <% if (user) { %>
+      <ol class="crumbs" aria-label="Breadcrumb">
+        <li><a href="/dashboard"><%- icon('home') %><span class="sr-only"><%= t('dashboard') %></span></a></li>
+        <% if (c && c.href !== '/dashboard') { %>
+          <li><%= t(c.section) %></li>
+          <% if (c.isRoot) { %>
+            <li aria-current="page"><%= t(c.key) %></li>
+          <% } else { %>
+            <li><a href="<%= c.href %>"><%= t(c.key) %></a></li>
+            <li aria-current="page"><%= p.title %></li>
+          <% } %>
+        <% } else if (!c) { %>
+          <li aria-current="page"><%= p.title %></li>
+        <% } %>
+      </ol>
+    <% } %>
+    <div class="page-title-row">
+      <span class="page-icon" aria-hidden="true"><%- icon(pageIcon) %></span>
+      <div>
+        <h1><%= p.title %><% (p.badges || []).forEach(function (b) { %> <span class="badge <%= b.cls || '' %>"><%= b.label %></span><% }) %></h1>
+        <% if (p.sub) { %><p class="page-sub"><%= p.sub %></p><% } %>
+      </div>
+    </div>
+  </div>
+  <% if (p.actions && p.actions.length) { %>
+    <div class="page-actions">
+      <% p.actions.forEach(function (a) { const cls = a.kind && a.kind !== 'primary' ? ' btn-' + a.kind : ''; %>
+        <% if (a.print) { %>
+          <button type="button" class="btn btn-light" data-print><%- icon('printer') %> <%= a.label || 'Print' %></button>
+        <% } else if (a.post) { %>
+          <form method="post" action="<%= a.post %>" <% if (a.confirm) { %>data-confirm="<%= a.confirm %>"<% } %>>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn<%= cls %>" type="submit"><% if (a.icon) { %><%- icon(a.icon) %> <% } %><%= a.label %></button>
+          </form>
+        <% } else { %>
+          <a class="btn<%= cls %>" href="<%= a.href %>"><% if (a.icon) { %><%- icon(a.icon) %> <% } %><%= a.label %></a>
+        <% } %>
+      <% }) %>
+    </div>
+  <% } %>
+</header>

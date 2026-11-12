@@ -1,0 +1,35 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('myStudents'), icon: 'users', sub: students.length + ' students in the selected class.' } }) %>
+<section class="card">
+  <% if (!classes.length) { %>
+    <%- include('../partials/empty', { e: { icon: 'school', title: 'No classes', text: 'You are not linked to any class.' } }) %>
+  <% } else { %>
+    <nav class="tabs" aria-label="Class">
+      <% classes.forEach(function (c) { %><a href="/teacher/students?class_id=<%= c.id %>" class="<%= c.id === classId ? 'active' : '' %>">Class <%= c.name %>-<%= c.section %><%= c.is_class_teacher ? ' ★' : '' %></a><% }) %>
+    </nav>
+    <div class="toolbar">
+      <label class="search-field grow"><span class="sr-only"><%= t('search') %></span><%- icon('search') %>
+        <input type="search" data-filter-table="#studentsTable" placeholder="Filter by name or admission no.">
+      </label>
+      <span class="result-count"><span data-filter-count="#studentsTable"><%= students.length %></span> <%= t('results') %></span>
+    </div>
+    <div class="table-wrap">
+      <table class="table" id="studentsTable">
+        <thead><tr><th class="num">Roll</th><th>Name</th><th>Adm. No.</th><th>Attendance</th></tr></thead>
+        <tbody>
+          <% if (!students.length) { %><tr><td colspan="4" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'users', text: 'No students in this class.', compact: true } }) %></td></tr><% } %>
+          <% students.forEach(function (s) { %>
+            <tr>
+              <td class="num"><%= s.roll_no || '' %></td>
+              <td><%- include('../partials/person', { pn: { name: s.full_name, href: '/teacher/students/' + s.id } }) %></td>
+              <td><%= s.admission_no %></td>
+              <td class="bar-cell"><div class="bar-row inline"><div class="bar"><span class="lvl-<%= utils.level(s.att.percent) %>" style="width: <%= s.att.percent || 0 %>%"></span></div><span class="bar-val"><%= s.att.percent === null ? '–' : s.att.percent + '%' %></span></div></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small">★ = you are the class teacher.</p>
+  <% } %>
+</section>
+<%- include('../partials/footer') %>

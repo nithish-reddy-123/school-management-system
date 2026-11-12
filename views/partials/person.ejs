@@ -1,0 +1,11 @@
+<%
+/* Avatar + name (+ optional sub-line). include('../partials/person', { pn: { name, href, sub } }) */
+const pn = locals.pn || {};
+%>
+<span class="person">
+  <span class="avatar-sm" style="--h: <%= utils.hue(pn.name) %>" aria-hidden="true"><%= utils.initials(pn.name) %></span>
+  <span>
+    <% if (pn.href) { %><a href="<%= pn.href %>"><%= pn.name %></a><% } else { %><strong><%= pn.name %></strong><% } %>
+    <% if (pn.sub) { %><small><%= pn.sub %></small><% } %>
+  </span>
+</span>

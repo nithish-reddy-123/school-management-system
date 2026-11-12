@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-labelledby="sc-title" class="sc-scene" preserveAspectRatio="xMidYMid slice">
+  <title id="sc-title">Animated illustration of a government school with the national flag, trees and children</title>
+  <style>
+    .sc-scene .sc-cloud-a { animation: sc-drift-a 18s ease-in-out infinite alternate; }
+    .sc-scene .sc-cloud-b { animation: sc-drift-b 24s ease-in-out infinite alternate; }
+    .sc-scene .sc-sun-glow { transform-box: fill-box; transform-origin: center; animation: sc-pulse 4s ease-in-out infinite; }
+    .sc-scene .sc-rays { transform-box: fill-box; transform-origin: center; animation: sc-spin 40s linear infinite; }
+    .sc-scene .sc-flag { transform-box: fill-box; transform-origin: left center; animation: sc-wave 2.6s ease-in-out infinite; }
+    .sc-scene .sc-tree { transform-box: fill-box; transform-origin: 50% 100%; animation: sc-sway 6s ease-in-out infinite alternate; }
+    .sc-scene .sc-tree.r { animation-delay: -3s; }
+    .sc-scene .sc-kid { animation: sc-bob 1.8s ease-in-out infinite alternate; }
+    .sc-scene .sc-kid.k2 { animation-delay: -.5s; } .sc-scene .sc-kid.k3 { animation-delay: -1s; } .sc-scene .sc-kid.k4 { animation-delay: -1.4s; }
+    .sc-scene .sc-birds { animation: sc-fly 26s linear infinite; }
+    .sc-scene .sc-wing { transform-box: fill-box; transform-origin: center; animation: sc-flap .5s ease-in-out infinite alternate; }
+    .sc-scene .sc-flower { transform-box: fill-box; transform-origin: center; animation: sc-pop 3s ease-in-out infinite; }
+    .sc-scene .sc-flower:nth-of-type(2n) { animation-delay: -1.5s; }
+    .sc-scene.sc-paused *, .sc-paused .sc-scene * { animation-play-state: paused !important; }
+    @keyframes sc-drift-a { to { transform: translateX(70px); } }
+    @keyframes sc-drift-b { to { transform: translateX(-60px); } }
+    @keyframes sc-pulse { 50% { transform: scale(1.18); opacity: .15; } }
+    @keyframes sc-spin { to { transform: rotate(360deg); } }
+    @keyframes sc-wave { 0%, 100% { transform: skewY(0) scaleX(1); } 50% { transform: skewY(-5deg) scaleX(.95); } }
+    @keyframes sc-sway { from { transform: rotate(-1.6deg); } to { transform: rotate(1.6deg); } }
+    @keyframes sc-bob { to { transform: translateY(-7px); } }
+    @keyframes sc-fly { from { transform: translate(-220px, 0); } 50% { transform: translate(600px, -30px); } to { transform: translate(1450px, 10px); } }
+    @keyframes sc-flap { to { transform: scaleY(.3); } }
+    @keyframes sc-pop { 50% { transform: scale(1.25); } }
+    @media (prefers-reduced-motion: reduce) { .sc-scene * { animation: none !important; } }
+  </style>
+  <defs>
+    <linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#e9f6ff"/></linearGradient>
+    <linearGradient id="sc-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdf0d5"/><stop offset="1" stop-color="#f1dcb1"/></linearGradient>
+    <linearGradient id="sc-grass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd15f"/><stop offset="1" stop-color="#4f9a31"/></linearGradient>
+  </defs>
+
+  <rect width="1200" height="700" fill="url(#sc-sky)"/>
+
+  <!-- Sun -->
+  <g transform="translate(1040 110)">
+    <g class="sc-rays" stroke="#ffd166" stroke-width="6" stroke-linecap="round" opacity=".7">
+      <path d="M0-95v-18M0 95v18M-95 0h-18M95 0h18M-67-67l-12-12M67 67l12 12M-67 67l-12 12M67-67l12-12"/>
+    </g>
+    <circle class="sc-sun-glow" r="80" fill="#ffd166" opacity=".3"/>
+    <circle r="56" fill="#ffcf4a"/>
+  </g>
+
+  <!-- Clouds -->
+  <g class="sc-cloud-a" fill="#fff" opacity=".95">
+    <ellipse cx="220" cy="110" rx="70" ry="26"/><ellipse cx="270" cy="95" rx="50" ry="30"/><ellipse cx="320" cy="115" rx="60" ry="22"/>
+  </g>
+  <g class="sc-cloud-b" fill="#fff" opacity=".9">
+    <ellipse cx="760" cy="80" rx="60" ry="20"/><ellipse cx="800" cy="68" rx="40" ry="24"/><ellipse cx="845" cy="84" rx="50" ry="18"/>
+  </g>
+
+  <!-- Birds -->
+  <g class="sc-birds" fill="none" stroke="#334155" stroke-width="3" stroke-linecap="round">
+    <g transform="translate(0 170)"><path class="sc-wing" d="M0 0q8-9 16 0q8-9 16 0"/></g>
+    <g transform="translate(46 150)"><path class="sc-wing" d="M0 0q6-7 12 0q6-7 12 0"/></g>
+    <g transform="translate(80 182)"><path class="sc-wing" d="M0 0q6-7 12 0q6-7 12 0"/></g>
+  </g>
+
+  <path d="M0 430 Q200 330 420 420 T860 410 T1200 400 V520 H0Z" fill="#b5dc9a"/>
+  <rect y="500" width="1200" height="200" fill="url(#sc-grass)"/>
+
+  <!-- Building wings -->
+  <rect x="250" y="300" width="700" height="220" fill="url(#sc-wall)" stroke="#d9bf8a" stroke-width="2"/>
+  <rect x="240" y="286" width="720" height="22" rx="3" fill="#c4553a"/>
+  <rect x="250" y="404" width="700" height="10" fill="#e3c48c"/>
+  <g fill="#8ecae6" stroke="#fff" stroke-width="5">
+    <rect x="280" y="325" width="60" height="58"/><rect x="365" y="325" width="60" height="58"/><rect x="450" y="325" width="60" height="58"/>
+    <rect x="690" y="325" width="60" height="58"/><rect x="775" y="325" width="60" height="58"/><rect x="860" y="325" width="60" height="58"/>
+    <rect x="280" y="432" width="60" height="62"/><rect x="365" y="432" width="60" height="62"/><rect x="450" y="432" width="60" height="62"/>
+    <rect x="690" y="432" width="60" height="62"/><rect x="775" y="432" width="60" height="62"/><rect x="860" y="432" width="60" height="62"/>
+  </g>
+  <g stroke="#fff" stroke-width="3">
+    <path d="M310 325v58M395 325v58M480 325v58M720 325v58M805 325v58M890 325v58M310 432v62M395 432v62M480 432v62M720 432v62M805 432v62M890 432v62"/>
+  </g>
+
+  <!-- Centre block -->
+  <rect x="530" y="230" width="140" height="290" fill="#fff4dc" stroke="#d9bf8a" stroke-width="2"/>
+  <path d="M515 236 L600 170 L685 236Z" fill="#c4553a"/>
+  <circle cx="600" cy="212" r="14" fill="#fff" stroke="#0b3d91" stroke-width="3"/>
+  <path d="M600 198v28M586 212h28M590 202l20 20M610 202l-20 20" stroke="#0b3d91" stroke-width="1.5"/>
+  <rect x="455" y="250" width="290" height="44" rx="8" fill="#0b3d91" stroke="#ff9933" stroke-width="3"/>
+  <text x="600" y="279" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#fff" letter-spacing="1">GOVERNMENT SCHOOL</text>
+  <path d="M560 520 V430 Q600 395 640 430 V520Z" fill="#8a5a33"/>
+  <path d="M600 420v100" stroke="#6b4223" stroke-width="3"/>
+  <circle cx="590" cy="475" r="4" fill="#ffd166"/><circle cx="610" cy="475" r="4" fill="#ffd166"/>
+  <rect x="575" y="320" width="50" height="60" fill="#8ecae6" stroke="#fff" stroke-width="5"/>
+  <rect x="545" y="516" width="110" height="10" fill="#cdb48a"/>
+
+  <!-- Wall & gate -->
+  <rect x="60" y="540" width="460" height="26" fill="#ece5d6" stroke="#c9bfae"/>
+  <rect x="680" y="540" width="460" height="26" fill="#ece5d6" stroke="#c9bfae"/>
+  <rect x="60" y="540" width="460" height="6" fill="#ff9933"/><rect x="680" y="540" width="460" height="6" fill="#ff9933"/>
+  <rect x="505" y="512" width="22" height="58" fill="#c9bfae"/><rect x="673" y="512" width="22" height="58" fill="#c9bfae"/>
+  <path d="M560 526 L640 526 L760 700 L440 700Z" fill="#ead8b0"/>
+
+  <!-- Flag -->
+  <rect x="148" y="505" width="44" height="14" fill="#d8d2c4"/>
+  <rect x="167" y="250" width="6" height="260" fill="#8d99ae"/>
+  <circle cx="170" cy="248" r="6" fill="#f0c040"/>
+  <g transform="translate(173 258)">
+    <g class="sc-flag">
+      <rect width="120" height="26" fill="#ff9933"/>
+      <rect y="26" width="120" height="26" fill="#fff"/>
+      <rect y="52" width="120" height="26" fill="#138808"/>
+      <circle cx="60" cy="39" r="10" fill="none" stroke="#000080" stroke-width="2"/>
+      <circle cx="60" cy="39" r="2" fill="#000080"/>
+    </g>
+  </g>
+
+  <!-- Trees -->
+  <g class="sc-tree">
+    <rect x="72" y="430" width="16" height="90" fill="#7a4b2a"/>
+    <circle cx="80" cy="410" r="50" fill="#3f8f3a"/><circle cx="50" cy="440" r="32" fill="#4fa346"/><circle cx="112" cy="438" r="34" fill="#4fa346"/>
+  </g>
+  <g class="sc-tree r">
+    <rect x="1092" y="420" width="18" height="100" fill="#7a4b2a"/>
+    <circle cx="1100" cy="396" r="56" fill="#3f8f3a"/><circle cx="1064" cy="430" r="34" fill="#4fa346"/><circle cx="1138" cy="428" r="36" fill="#4fa346"/>
+  </g>
+  <circle cx="1010" cy="500" r="22" fill="#4fa346"/><circle cx="230" cy="505" r="20" fill="#4fa346"/>
+
+  <!-- Children (outer group animates, inner group positions) -->
+  <g class="sc-kid"><g transform="translate(470 590)">
+    <circle cy="-58" r="14" fill="#8d5524"/><path d="M-14 -62 Q0 -80 14 -62" fill="#222"/>
+    <rect x="-14" y="-44" width="28" height="34" rx="6" fill="#fff"/><rect x="-14" y="-12" width="28" height="22" fill="#1d4e89"/>
+    <rect x="-12" y="10" width="9" height="26" fill="#8d5524"/><rect x="3" y="10" width="9" height="26" fill="#8d5524"/>
+    <rect x="-20" y="-40" width="10" height="26" rx="3" fill="#e63946"/>
+  </g></g>
+  <g class="sc-kid k2"><g transform="translate(730 600)">
+    <circle cy="-58" r="14" fill="#a0673a"/><path d="M-15 -60 Q0 -82 15 -60" fill="#222"/>
+    <rect x="-19" y="-58" width="5" height="22" rx="2" fill="#222"/><rect x="14" y="-58" width="5" height="22" rx="2" fill="#222"/>
+    <rect x="-14" y="-44" width="28" height="30" rx="6" fill="#fff"/><path d="M-17 -16 H17 L22 14 H-22Z" fill="#1d4e89"/>
+    <rect x="-10" y="14" width="8" height="22" fill="#a0673a"/><rect x="2" y="14" width="8" height="22" fill="#a0673a"/>
+    <rect x="12" y="-40" width="10" height="26" rx="3" fill="#ffb703"/>
+  </g></g>
+  <g class="sc-kid k3"><g transform="translate(820 625) scale(.85)">
+    <circle cy="-58" r="14" fill="#7a4a24"/><path d="M-14 -62 Q0 -80 14 -62" fill="#222"/>
+    <rect x="-14" y="-44" width="28" height="34" rx="6" fill="#fff"/><rect x="-14" y="-12" width="28" height="22" fill="#1d4e89"/>
+    <rect x="-12" y="10" width="9" height="26" fill="#7a4a24"/><rect x="3" y="10" width="9" height="26" fill="#7a4a24"/>
+  </g></g>
+  <g class="sc-kid k4"><g transform="translate(380 630) scale(.9)">
+    <circle cy="-58" r="14" fill="#b07a4f"/><path d="M-15 -60 Q0 -82 15 -60" fill="#222"/>
+    <rect x="-19" y="-58" width="5" height="22" rx="2" fill="#222"/><rect x="14" y="-58" width="5" height="22" rx="2" fill="#222"/>
+    <rect x="-14" y="-44" width="28" height="30" rx="6" fill="#fff"/><path d="M-17 -16 H17 L22 14 H-22Z" fill="#1d4e89"/>
+    <rect x="-10" y="14" width="8" height="22" fill="#b07a4f"/><rect x="2" y="14" width="8" height="22" fill="#b07a4f"/>
+    <rect x="-22" y="-40" width="10" height="26" rx="3" fill="#2a9d8f"/>
+  </g></g>
+
+  <!-- Flowers -->
+  <g>
+    <circle class="sc-flower" cx="300" cy="600" r="6" fill="#ff6b6b"/><circle class="sc-flower" cx="318" cy="610" r="6" fill="#ffd166"/>
+    <circle class="sc-flower" cx="285" cy="615" r="6" fill="#f78fb3"/><circle class="sc-flower" cx="920" cy="610" r="6" fill="#ffd166"/>
+    <circle class="sc-flower" cx="905" cy="620" r="6" fill="#ff6b6b"/><circle class="sc-flower" cx="938" cy="622" r="6" fill="#f78fb3"/>
+    <circle class="sc-flower" cx="160" cy="640" r="6" fill="#ff6b6b"/><circle class="sc-flower" cx="1040" cy="650" r="6" fill="#ffd166"/>
+  </g>
+</svg>

@@ -1,0 +1,9 @@
+<% if (!events.length) { %><%- include('empty', { e: { icon: 'calendar', text: t('noEvents'), compact: true } }) %><% } %>
+<ul class="event-list">
+  <% events.forEach(function (e) { const d = new Date(e.date + 'T00:00:00'); %>
+    <li>
+      <span class="date-chip ev-<%= e.type %>"><b><%= d.getDate() %></b><%= d.toLocaleString('en-IN', { month: 'short' }) %></span>
+      <span><%= e.title %><br><small class="muted"><%= { holiday: 'Holiday', exam: 'Examination', event: 'School event', ptm: 'Parent-Teacher Meeting', smc: 'SMC Meeting' }[e.type] %></small></span>
+    </li>
+  <% }) %>
+</ul>

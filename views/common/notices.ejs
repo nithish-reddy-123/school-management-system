@@ -1,0 +1,33 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('notices'), icon: 'megaphone', sub: notices.length + ' notice(s) for you.' } }) %>
+<div class="grid <%= canPost ? 'grid-side' : '' %>">
+  <section class="card">
+    <%- include('../partials/notice_list', { notices: notices, full: true, canDelete: canPost }) %>
+  </section>
+  <% if (canPost) { %>
+    <section class="card form-panel tone-amber">
+      <h2><%- icon('plus') %> Publish a notice</h2>
+      <form method="post" action="/notices">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label>Title <input name="title" required maxlength="150"></label>
+        <label>Message <textarea name="body" rows="5" required maxlength="4000"></textarea></label>
+        <label>Audience
+          <select name="audience">
+            <% Object.entries(audiences).forEach(function ([k, v]) {
+                 if (user.role === 'teacher' && !['students', 'parents', 'students_parents'].includes(k)) return; %>
+              <option value="<%= k %>" <%= k === (user.role === 'teacher' ? 'students_parents' : 'all') ? 'selected' : '' %>><%= v %></option>
+            <% }) %>
+          </select>
+        </label>
+        <label>Class
+          <select name="class_id" <%= user.role === 'teacher' ? 'required' : '' %>>
+            <% if (user.role === 'headmaster') { %><option value="">Whole school</option><% } %>
+            <% classes.forEach(function (c) { %><option value="<%= c.id %>">Class <%= c.name %>-<%= c.section %></option><% }) %>
+          </select>
+        </label>
+        <button class="btn btn-block" type="submit"><%- icon('megaphone') %> Publish</button>
+      </form>
+    </section>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

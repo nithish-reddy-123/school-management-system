@@ -1,0 +1,86 @@
+<%- include('../partials/header') %>
+<% const roleIcons = { student: 'backpack', parent: 'heart', teacher: 'pen' }; %>
+<section class="card register-card reveal">
+  <h1><%- icon('user-plus') %> <%= t('registerAs') %>: <%= t(role) %></h1>
+  <nav class="role-tabs cols-3" aria-label="<%= t('chooseRole') %>">
+    <% roles.forEach(function (r) { %>
+      <a href="/register?role=<%= r %>" class="<%= r === role ? 'active' : '' %>" <%= r === role ? 'aria-current=page' : '' %>>
+        <span class="ri"><%- icon(roleIcons[r]) %></span><%= t(r) %>
+      </a>
+    <% }) %>
+  </nav>
+  <div class="alert alert-info">ℹ️ <%= t(role === 'teacher' ? 'registerNote_teacher' : 'registerNote') %></div>
+  <% if (error) { %><div class="alert alert-error" role="alert"><%= error %></div><% } %>
+
+  <form method="post" action="/register" class="form-grid" autocomplete="on">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="role" value="<%= role %>">
+    <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
+
+    <label class="span-2"><%= t('fullName') %> *
+      <input name="full_name" value="<%= v.full_name %>" required maxlength="120" autocomplete="name">
+    </label>
+
+    <% if (role === 'student') { %>
+      <label><%= t('class') %> *
+        <select name="class_id" required>
+          <option value=""><%= t('selectClass') %></option>
+          <% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= String(c.id) === String(v.class_id) ? 'selected' : '' %>><%= t('class') %> <%= c.name %>-<%= c.section %></option><% }) %>
+        </select>
+      </label>
+      <label><%= t('dob') %> * <input type="date" name="dob" value="<%= v.dob %>" required max="<%= today %>"></label>
+      <label><%= t('gender') %>
+        <select name="gender">
+          <option value=""><%= t('select') %></option>
+          <% [['M', 'boy'], ['F', 'girl'], ['O', 'other']].forEach(function ([k, l]) { %><option value="<%= k %>" <%= v.gender === k ? 'selected' : '' %>><%= t(l) %></option><% }) %>
+        </select>
+      </label>
+      <label><%= t('admissionNoOptional') %> <input name="admission_no" value="<%= v.admission_no %>" maxlength="30"></label>
+      <label><%= t('guardianName') %> <input name="guardian_name" value="<%= v.guardian_name %>" maxlength="120"></label>
+      <label><%= t('guardianPhone') %> <input name="guardian_phone" value="<%= v.guardian_phone %>" pattern="[6-9]\d{9}" maxlength="10" inputmode="numeric"></label>
+    <% } %>
+
+    <% if (role === 'parent') { %>
+      <label><%= t('childrenAdm') %> *
+        <input name="children" value="<%= v.children %>" required maxlength="120" placeholder="2026001, 2025009">
+        <small class="muted"><%= t('childrenHint') %></small>
+      </label>
+      <label><%= t('relation') %>
+        <select name="relation"><% relations.forEach(function (r) { %><option value="<%= r %>" <%= v.relation === r ? 'selected' : '' %>><%= t(r) %></option><% }) %></select>
+      </label>
+    <% } %>
+
+    <% if (role === 'teacher') { %>
+      <label><%= t('employeeId') %> <input name="employee_id" value="<%= v.employee_id %>" maxlength="30"></label>
+      <label><%= t('designation') %> <input name="designation" value="<%= v.designation %>" maxlength="80" placeholder="<%= t('designationHint') %>"></label>
+      <label class="span-2"><%= t('qualification') %> <input name="qualification" value="<%= v.qualification %>" maxlength="120" placeholder="B.Sc., B.Ed."></label>
+    <% } %>
+
+    <label><%= t('mobile') %><%= role === 'student' ? '' : ' *' %>
+      <input name="phone" value="<%= v.phone %>" pattern="[6-9]\d{9}" maxlength="10" inputmode="numeric" autocomplete="tel" <%= role === 'student' ? '' : 'required' %>>
+    </label>
+    <label><%= t('emailOptional') %> <input type="email" name="email" value="<%= v.email %>" maxlength="120" autocomplete="email"></label>
+    <% if (role === 'student') { %>
+      <label class="span-2"><%= t('address') %> <input name="address" value="<%= v.address %>" maxlength="300" autocomplete="street-address"></label>
+    <% } %>
+
+    <h3 class="span-2"><%= t('login') %></h3>
+    <label class="span-2"><%= t('chooseUsername') %> *
+      <input name="username" value="<%= v.username %>" required pattern="[a-z0-9._\-]{3,30}" maxlength="30" autocomplete="username" autocapitalize="none">
+      <small class="muted"><%= t('usernameRule') %></small>
+    </label>
+    <label><%= t('password') %> *
+      <input type="password" name="password" required minlength="8" maxlength="200" autocomplete="new-password">
+      <small class="muted"><%= t('passwordRule') %></small>
+    </label>
+    <label><%= t('confirmPassword') %> *
+      <input type="password" name="confirm_password" required minlength="8" maxlength="200" autocomplete="new-password">
+    </label>
+
+    <div class="span-2 form-actions">
+      <button class="btn btn-lg" type="submit"><%- icon('send') %> <%= t('submitRegistration') %></button>
+    </div>
+  </form>
+  <p class="muted"><%= t('alreadyHaveAccount') %> <a href="/login?role=<%= role %>"><%= t('login') %> <%- icon('arrow-right') %></a></p>
+</section>
+<%- include('../partials/footer') %>

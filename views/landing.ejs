@@ -1,0 +1,152 @@
+<%- include('partials/header') %>
+<%
+  const roleCards = [
+    { role: 'student', icon: 'backpack', desc: t('studentDesc') },
+    { role: 'parent', icon: 'heart', desc: t('parentDesc') },
+    { role: 'teacher', icon: 'pen', desc: t('teacherDesc') },
+    { role: 'headmaster', icon: 'landmark', desc: t('headmasterDesc') },
+  ];
+  const schemes = [['bowl', 'scheme_mdm'], ['book', 'scheme_books'], ['cap', 'scheme_scholar'], ['shield', 'scheme_rte'], ['user-check', 'scheme_apaar']];
+  const steps = [
+    { art: 'step1', t: t('step1_t'), d: t('step1_d') },
+    { art: 'step2', t: t('step2_t'), d: t('step2_d') },
+    { art: 'step3', t: t('step3_t'), d: t('step3_d') },
+    { art: 'step4', t: t('step4_t'), d: t('step4_d') },
+  ];
+%>
+<section class="hero">
+  <div class="hero-text">
+    <p class="hero-kicker"><%- icon('map-pin') %> <%= [...new Set([school.block, school.district, school.state].filter(Boolean))].join(' · ') || 'India' %></p>
+    <h1><%= schoolName %></h1>
+    <p class="hero-tagline"><%= t('tagline') %></p>
+    <div class="hero-meta">
+      <% if (school.udise_code) { %><span>UDISE+ <strong><%= school.udise_code %></strong></span><% } %>
+      <% if (school.board) { %><span><%= school.board %></span><% } %>
+      <% if (school.medium) { %><span><%= school.medium %></span><% } %>
+    </div>
+    <div class="hero-stats">
+      <div><b data-count><%= counts.students %></b><span><%= t('students') %></span></div>
+      <div><b data-count><%= counts.teachers %></b><span><%= t('teachers') %></span></div>
+      <div><b data-count><%= counts.classes %></b><span><%= t('classes') %></span></div>
+    </div>
+    <div class="quick">
+      <a class="btn btn-saffron btn-lg" href="#login-roles"><%= t('loginAs') %> <%- icon('arrow-right') %></a>
+      <a class="btn btn-ghost btn-lg" href="/register"><%= t('newHere') %> <%= t('register') %></a>
+    </div>
+  </div>
+  <figure class="hero-photo">
+    <% if (hasPhoto) { %>
+      <img src="/school-photo" alt="<%= schoolName %>" width="1200" height="700">
+    <% } else { %>
+      <%- include('partials/school_scene') %>
+    <% } %>
+    <button type="button" class="anim-toggle" data-anim-toggle aria-pressed="false"></button>
+  </figure>
+</section>
+
+<section class="quote-day reveal" aria-label="<%= t('thoughtForDay') %>">
+  <%- icon('quote', 'quote-mark') %>
+  <div><span class="quote-label"><%- icon('sparkles') %> <%= t('thoughtForDay') %></span></div>
+  <% if (quote.original) { %><p class="quote-original"><%= quote.original %></p><% } %>
+  <blockquote><%= quote.text %></blockquote>
+  <cite>— <%= quote.author %></cite>
+</section>
+
+<section id="login-roles" class="role-section">
+  <div class="section-head"><h2><%= t('loginAs') %></h2><p><%= t('chooseRole') %></p></div>
+  <div class="role-cards">
+    <% roleCards.forEach(function (r) { %>
+      <div class="role-card role-<%= r.role %>">
+        <span class="role-icon" aria-hidden="true"><%- icon(r.icon) %></span>
+        <strong><%= t(r.role) %></strong>
+        <span class="muted"><%= r.desc %></span>
+        <div class="role-actions">
+          <a class="btn btn-sm" href="/login?role=<%= r.role %>"><%= t('login') %> <%- icon('arrow-right') %></a>
+          <% if (r.role !== 'headmaster') { %><a class="btn btn-sm btn-light" href="/register?role=<%= r.role %>"><%= t('register') %></a><% } %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</section>
+
+<section class="how-section">
+  <div class="section-head"><h2><%= t('howTitle') %></h2><p><%= t('howSub') %></p></div>
+  <div class="stepper" data-stepper>
+    <% steps.forEach(function (s, i) { %>
+      <article class="step<%= i === 0 ? ' is-active' : '' %>">
+        <span class="step-num"><%= i + 1 %></span>
+        <div class="step-art"><%- include('partials/step_art', { art: s.art }) %></div>
+        <h3><%= s.t %></h3>
+        <p><%= s.d %></p>
+        <div class="step-bar"></div>
+      </article>
+    <% }) %>
+  </div>
+  <div class="stepper-controls"><button type="button" class="icon-btn btn-light" data-anim-toggle aria-pressed="false"></button></div>
+</section>
+
+<div class="grid grid-3 landing-info">
+  <section class="card">
+    <h2><%- icon('school') %> <%= t('aboutSchool') %></h2>
+    <% if (school.about) { %><p class="pre"><%= school.about %></p><% } %>
+    <% if (facilities.length) { %>
+      <h3><%= t('facilities') %></h3>
+      <ul class="tick-list"><% facilities.forEach(function (f) { %><li><%= f %></li><% }) %></ul>
+    <% } %>
+  </section>
+
+  <section class="card">
+    <h2><%- icon('info') %> <%= t('usefulInfo') %></h2>
+    <ul class="info-list">
+      <% if (school.timings) { %><li><span class="ii"><%- icon('clock') %></span><div><strong><%= t('schoolTimings') %></strong><small><%= school.timings %></small></div></li><% } %>
+      <% if (school.address || school.district) { %><li><span class="ii"><%- icon('map-pin') %></span><div><strong><%= t('address') %></strong><small><%= [...new Set([school.address, school.district, school.state].filter(Boolean))].join(', ') %></small></div></li><% } %>
+      <% if (school.phone) { %><li><span class="ii"><%- icon('phone') %></span><div><strong><%= t('contact') %></strong><small><a href="tel:<%= school.phone %>"><%= school.phone %></a><% if (school.email) { %> · <a href="mailto:<%= school.email %>"><%= school.email %></a><% } %></small></div></li><% } %>
+    </ul>
+    <div class="helplines">
+      <a class="helpline" href="tel:1098"><small><%= t('childHelpline') %></small><b>1098</b></a>
+      <a class="helpline" href="tel:112"><small><%= t('emergency') %></small><b>112</b></a>
+    </div>
+    <div class="alert alert-info"><strong><%= t('admissions') %>:</strong> <%= t('admissionsText') %></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2><%- icon('calendar') %> <%= t('upcomingEvents') %></h2></div>
+    <% if (!events.length) { %>
+      <div class="empty-state"><span class="empty-art"><%- icon('calendar') %></span><p><%= t('noEvents') %></p></div>
+    <% } %>
+    <ul class="event-list">
+      <% events.forEach(function (e) { const d = new Date(e.date + 'T00:00:00'); %>
+        <li>
+          <span class="date-chip ev-<%= e.type %>"><b><%= d.getDate() %></b><%= d.toLocaleString('en-IN', { month: 'short' }) %></span>
+          <span><%= e.title %><br><small class="muted"><%= eventTypes[e.type] %></small></span>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+</div>
+
+<section class="card">
+  <h2><%- icon('landmark') %> <%= t('schemes') %></h2>
+  <div class="scheme-grid">
+    <% schemes.forEach(function ([ico, key]) { %><div class="scheme"><span aria-hidden="true"><%- icon(ico) %></span><p><%= t(key) %></p></div><% }) %>
+  </div>
+</section>
+
+<section class="quotes-wall">
+  <div class="section-head"><h2><%- icon('sparkles') %> <%= t('wordsToInspire') %></h2></div>
+  <div class="quote-grid">
+    <% quotes.forEach(function (q, i) { %>
+      <figure class="quote-card qc-<%= i % 4 %>">
+        <% if (q.original) { %><p class="quote-original"><%= q.original %></p><% } %>
+        <blockquote><%= q.text %></blockquote>
+        <figcaption>— <%= q.author %></figcaption>
+      </figure>
+    <% }) %>
+  </div>
+</section>
+
+<section class="cta-band reveal">
+  <div><h2><%= t('newHere') %></h2><p><%= t('registerNote') %></p></div>
+  <a class="btn btn-saffron btn-lg" href="/register"><%= t('getStarted') %> <%- icon('arrow-right') %></a>
+</section>
+<%- include('partials/footer') %>

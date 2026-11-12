@@ -1,0 +1,59 @@
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="tricolor-line" aria-hidden="true"></div>
+    <div class="footer-inner">
+      <span>© <%= new Date().getFullYear() %> <%= schoolName %></span>
+      <span class="muted">Samagra Shiksha · PM POSHAN · UDISE+</span>
+    </div>
+  </footer>
+
+  <button type="button" class="back-to-top" data-back-to-top aria-label="<%= t('backToTop') %>" title="<%= t('backToTop') %>"><%- icon('arrow-up') %></button>
+
+  <% if (user) {
+       const quickItems = nav.flatMap(function (g) { return g.items; }).slice(0, 4); %>
+    <nav class="bottom-nav" aria-label="<%= t('menu') %>">
+      <% quickItems.forEach(function (item) {
+           const active = item.href === '/dashboard' ? currentPath === '/dashboard' : currentPath.startsWith(item.href); %>
+        <a href="<%= item.href %>" class="<%= active ? 'active' : '' %>" <%= active ? 'aria-current=page' : '' %>><%- icon(item.icon) %><span><%= t(item.key) %></span><% if (item.badge) { %><span class="nav-badge"><%= item.badge %></span><% } %></a>
+      <% }) %>
+      <button type="button" data-sidebar-open aria-controls="sidebar"><%- icon('menu') %><span><%= t('more') %></span></button>
+    </nav>
+
+    <dialog class="help-dialog" id="helpDialog" aria-labelledby="helpTitle">
+      <h2 id="helpTitle"><span><%= t('shortcuts') %></span>
+        <button type="button" class="icon-btn" data-dialog-close aria-label="<%= t('close') %>"><%- icon('x') %></button>
+      </h2>
+      <ul class="shortcut-list">
+        <li><span><%= t('quickJump') %></span><span><kbd>Ctrl</kbd><kbd>K</kbd></span></li>
+        <li><span><%= t('quickJump') %></span><kbd>/</kbd></li>
+        <li><span><%= t('collapseMenu') %></span><kbd>[</kbd></li>
+        <li><span><%= t('themeToggle') %></span><kbd>T</kbd></li>
+        <li><span><%= t('shortcuts') %></span><kbd>?</kbd></li>
+        <li><span><%= t('close') %></span><kbd>Esc</kbd></li>
+      </ul>
+    </dialog>
+  <% } %>
+
+  <% if (user) { %>
+    <dialog class="palette" id="palette" aria-label="<%= t('quickJump') %>">
+      <div class="palette-box">
+        <label class="palette-search"><%- icon('search') %>
+          <input type="search" placeholder="<%= t('quickJump') %>" aria-describedby="paletteHint" autocomplete="off" data-palette-input>
+          <kbd>Esc</kbd>
+        </label>
+        <p id="paletteHint" class="sr-only"><%= t('quickJumpHint') %></p>
+        <ul class="palette-list" data-palette-list>
+          <% nav.forEach(function (group) { group.items.forEach(function (item) { %>
+            <li><a href="<%= item.href %>" data-label="<%= t(item.key) %> <%= t(group.section) %>"><%- icon(item.icon) %><span><%= t(item.key) %></span><small><%= t(group.section) %></small></a></li>
+          <% }) }) %>
+          <li><a href="/profile" data-label="<%= t('profile') %>"><%- icon('user') %><span><%= t('profile') %></span><small><%= t('sec_account') %></small></a></li>
+          <li><a href="/change-password" data-label="<%= t('changePassword') %>"><%- icon('key') %><span><%= t('changePassword') %></span><small><%= t('sec_account') %></small></a></li>
+        </ul>
+        <p class="palette-empty" data-palette-empty hidden><%= t('noResults') %></p>
+      </div>
+    </dialog>
+  <% } %>
+</body>
+</html>

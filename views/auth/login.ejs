@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+<% const roleIcons = { student: 'backpack', parent: 'heart', teacher: 'pen', headmaster: 'landmark' }; %>
+<section class="auth-shell reveal">
+  <div class="auth-art">
+    <div class="art-media">
+      <% if (hasPhoto) { %><img src="/school-photo" alt=""><% } else { %><%- include('../partials/school_scene') %><% } %>
+    </div>
+    <h1><%= schoolName %></h1>
+    <p><%= t('tagline') %></p>
+  </div>
+  <div class="auth-panel">
+    <h2><%= role ? t('loginAs') + ' · ' + t(role) : t('loginTitle') %></h2>
+    <p class="muted small"><%= t('chooseRole') %></p>
+    <nav class="role-tabs" aria-label="<%= t('chooseRole') %>">
+      <% roles.forEach(function (r) { %>
+        <a href="/login?role=<%= r %>" class="<%= r === role ? 'active' : '' %>" <%= r === role ? 'aria-current=page' : '' %>>
+          <span class="ri"><%- icon(roleIcons[r]) %></span><%= t(r) %>
+        </a>
+      <% }) %>
+    </nav>
+    <% if (error) { %><div class="alert alert-error" role="alert"><%= error %></div><% } %>
+    <form method="post" action="/login" autocomplete="on">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="role" value="<%= role || '' %>">
+      <label><%= t('username') %>
+        <input name="username" value="<%= username %>" required autofocus autocomplete="username" autocapitalize="none" maxlength="50">
+      </label>
+      <label><%= t('password') %>
+        <input type="password" name="password" required autocomplete="current-password" maxlength="200">
+      </label>
+      <p class="muted small"><%= role ? t('roleHint_' + role) : t('loginHint') %></p>
+      <button class="btn btn-lg btn-block" type="submit"><%- icon('logout') %> <%= t('login') %><%= role ? ' · ' + t(role) : '' %></button>
+    </form>
+    <% if (role !== 'headmaster') { %>
+      <p class="register-link"><span><%= t('newHere') %></span> <a href="/register<%= role ? '?role=' + role : '' %>"><%= t('createAccount') %> <%- icon('arrow-right') %></a></p>
+    <% } %>
+    <p class="muted small">Forgot your password? Contact the school office or the headmaster to reset it.</p>
+  </div>
+</section>
+<%- include('../partials/footer') %>

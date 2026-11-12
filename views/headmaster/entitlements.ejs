@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('entitlements'), icon: 'backpack', sub: 'Distribution status for academic year ' + year + '.' } }) %>
+<div class="grid grid-side">
+  <section class="card">
+    <h2><%- icon('chart') %> Distribution status by class</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Class</th><th class="num">Students</th><% ITEMS.forEach(function (it) { %><th class="num"><%= it %></th><% }) %></tr></thead>
+        <tbody>
+          <% if (!matrix.length) { %><tr><td colspan="<%= ITEMS.length + 2 %>" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'school', text: 'No classes yet.', compact: true } }) %></td></tr><% } %>
+          <% matrix.forEach(function (c) { %>
+            <tr>
+              <td><strong>Class <%= c.name %>-<%= c.section %></strong></td><td class="num"><%= c.student_count %></td>
+              <% ITEMS.forEach(function (it) { const n = c.items[it]; %>
+                <td class="num"><span class="badge <%= c.student_count && n >= c.student_count ? 'st-resolved' : n ? 'st-in_progress' : '' %>"><%= n %>/<%= c.student_count %></span></td>
+              <% }) %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small"><span class="badge st-resolved">all</span> every student received it · <span class="badge st-in_progress">partial</span> some students · <span class="badge">none</span> not yet distributed</p>
+  </section>
+  <section class="card form-panel tone-green">
+    <h2><%- icon('plus') %> Record distribution</h2>
+    <form method="post" action="/hm/entitlements">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label>Item <select name="item" required><% ITEMS.forEach(function (it) { %><option><%= it %></option><% }) %></select></label>
+      <label>Whole class
+        <select name="class_id"><option value="">—</option><% matrix.forEach(function (c) { %><option value="<%= c.id %>">Class <%= c.name %>-<%= c.section %></option><% }) %></select>
+      </label>
+      <div class="divider">or one student</div>
+      <label>Admission number <input name="admission_no" maxlength="30"></label>
+      <label>Distributed on <input type="date" name="distributed_on" value="<%= today %>" max="<%= today %>"></label>
+      <button class="btn btn-block" type="submit"><%- icon('check-circle') %> <%= t('save') %></button>
+    </form>
+    <p class="muted small">Each student is counted once per item per academic year, so re-submitting a class is safe.</p>
+  </section>
+</div>
+<%- include('../partials/footer') %>

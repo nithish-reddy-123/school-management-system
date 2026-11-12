@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('exams'), icon: 'clipboard', sub: 'Create exams; subject teachers then enter marks. Academic year ' + year + '.' } }) %>
+<div class="grid grid-side">
+  <section class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Exam</th><th>Year</th><th>Date</th><th class="num">Max marks</th><th class="num">Students with marks</th><th></th></tr></thead>
+        <tbody>
+          <% if (!exams.length) { %><tr><td colspan="6" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'clipboard', title: 'No exams yet', text: 'Create an exam using the form.' } }) %></td></tr><% } %>
+          <% exams.forEach(function (e) { %>
+            <tr>
+              <td><strong><%= e.name %></strong></td><td><%= e.academic_year %></td><td class="nowrap"><%= utils.formatDate(e.exam_date) %></td>
+              <td class="num"><%= e.max_marks %></td>
+              <td class="num"><span class="badge <%= e.students_with_marks ? 'st-resolved' : '' %>"><%= e.students_with_marks %></span></td>
+              <td class="actions">
+                <% if (!e.students_with_marks) { %>
+                  <form method="post" action="/hm/exams/<%= e.id %>/delete" class="inline" data-confirm="Delete this exam?">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button class="link danger" type="submit">Delete</button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="card form-panel">
+    <h2><%- icon('plus') %> Create exam</h2>
+    <form method="post" action="/hm/exams">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label>Name <input name="name" required maxlength="80" placeholder="e.g. Periodic Test 1, Half Yearly, Annual"></label>
+      <label>Maximum marks per subject <input type="number" name="max_marks" required min="1" max="1000" value="100"></label>
+      <label>Date <input type="date" name="exam_date"></label>
+      <label>Academic year <input name="academic_year" value="<%= year %>" pattern="\d{4}-\d{2}"></label>
+      <button class="btn btn-block" type="submit"><%- icon('plus') %> Create exam</button>
+    </form>
+  </section>
+</div>
+<%- include('../partials/footer') %>

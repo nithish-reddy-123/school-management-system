@@ -1,0 +1,8 @@
+<%- include('partials/header') %>
+<section class="card narrow center">
+  <div class="error-code"><%= status %></div>
+  <h1><%= title %></h1>
+  <p class="muted"><%= message %></p>
+  <p><a class="btn" href="<%= user ? '/dashboard' : '/login' %>"><%- icon('arrow-right') %> Go to <%= user ? 'dashboard' : 'login' %></a></p>
+</section>
+<%- include('partials/footer') %>

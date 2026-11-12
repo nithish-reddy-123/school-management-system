@@ -1,0 +1,13 @@
+<% if (!homework.length) { %><%- include('empty', { e: { icon: 'notebook', text: 'No homework assigned.', compact: true } }) %><% } %>
+<ul class="hw-list">
+  <% homework.forEach(function (h) { const overdue = h.due_date && h.due_date < today; %>
+    <li class="<%= overdue ? 'past' : '' %>">
+      <div><span class="badge badge-subject"><%= h.subject_name %></span> <strong><%= h.title %></strong></div>
+      <% if (h.description) { %><p><%= h.description %></p><% } %>
+      <small class="muted">
+        <% if (h.due_date) { %>Due <%= utils.formatDate(h.due_date) %><%= overdue ? ' (past)' : h.due_date === today ? ' (today)' : '' %> · <% } %>
+        <%= h.teacher_name || '' %>
+      </small>
+    </li>
+  <% }) %>
+</ul>

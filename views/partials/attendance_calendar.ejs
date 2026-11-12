@@ -1,0 +1,30 @@
+<div class="cal">
+  <div class="cal-head">
+    <a class="btn btn-sm btn-light" href="<%= baseUrl %>?month=<%= calendar.prev %>" aria-label="Previous month"><%- icon('chevron-left') %> Prev</a>
+    <strong class="display"><%= calendar.label %></strong>
+    <a class="btn btn-sm btn-light" href="<%= baseUrl %>?month=<%= calendar.next %>" aria-label="Next month">Next <%- icon('chevron-right') %></a>
+  </div>
+  <table class="cal-grid">
+    <thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead>
+    <tbody>
+      <% calendar.weeks.forEach(function (week) { %>
+        <tr>
+          <% week.forEach(function (c) { %>
+            <% if (!c) { %><td class="empty"></td><% } else {
+                 const cls = c.status ? 'st-' + c.status : c.holiday ? 'st-H' : c.sunday ? 'st-S' : ''; %>
+              <td class="<%= cls %>" title="<%= c.holiday || (c.status === 'P' ? 'Present' : c.status === 'A' ? 'Absent' : c.status === 'L' ? 'Leave' : '') %>">
+                <span class="d"><%= c.day %></span>
+                <span class="s"><%= c.status || (c.holiday ? 'H' : '') %></span>
+              </td>
+            <% } %>
+          <% }) %>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <div class="legend">
+    <span class="st-P">P</span> Present <span class="st-A">A</span> Absent <span class="st-L">L</span> Leave <span class="st-H">H</span> Holiday
+    · This month: <strong><%= calendar.summary.present %>/<%= calendar.summary.total %></strong>
+    <% if (calendar.summary.percent !== null) { %>(<%= calendar.summary.percent %>%)<% } %>
+  </div>
+</div>

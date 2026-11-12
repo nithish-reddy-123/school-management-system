@@ -1,0 +1,54 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: {
+  title: t('users'), icon: 'users', sub: 'Manage student, teacher, parent and headmaster accounts.',
+  actions: [{ href: '/hm/users/new?role=' + role + (classId ? '&class_id=' + classId : ''), label: 'Add ' + t(role), icon: 'user-plus' }],
+} }) %>
+<nav class="tabs" aria-label="Role">
+  <% ROLES.forEach(function (r) { %><a href="/hm/users?role=<%= r %>" class="<%= r === role ? 'active' : '' %>" <%= r === role ? 'aria-current=page' : '' %>><%= t(r) %></a><% }) %>
+</nav>
+<section class="card">
+  <form method="get" action="/hm/users" class="toolbar" role="search">
+    <input type="hidden" name="role" value="<%= role %>">
+    <label class="search-field grow"><span class="sr-only"><%= t('search') %></span><%- icon('search') %>
+      <input name="q" value="<%= q %>" data-filter-table="#usersTable" placeholder="Search name, username<%= role === 'student' ? ', admission no.' : role === 'parent' ? ', mobile' : ', employee ID' %>">
+    </label>
+    <% if (role === 'student') { %>
+      <select name="class_id" aria-label="Class">
+        <option value="">All classes</option>
+        <% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= c.id === classId ? 'selected' : '' %>>Class <%= c.name %>-<%= c.section %></option><% }) %>
+      </select>
+    <% } %>
+    <button class="btn btn-light" type="submit"><%- icon('search') %> <%= t('search') %></button>
+    <span class="result-count"><span data-filter-count="#usersTable"><%= users.length %></span> <%= t('results') %></span>
+  </form>
+  <div class="table-wrap">
+    <table class="table" id="usersTable">
+      <thead>
+        <tr>
+          <th>Name</th><th>Username</th>
+          <% if (role === 'student') { %><th>Adm. No.</th><th>Class</th><th class="num">Roll</th><% } %>
+          <% if (role === 'parent') { %><th>Mobile</th><th>Children</th><% } %>
+          <% if (role === 'teacher' || role === 'headmaster') { %><th>Emp. ID</th><th>Designation</th><% } %>
+          <th>Status</th><th>Last login</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!users.length) { %>
+          <tr><td colspan="7" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'users', title: 'No users found', text: q ? 'Try a different search.' : 'Add the first ' + t(role).toLowerCase() + ' to get started.', href: '/hm/users/new?role=' + role, cta: 'Add ' + t(role) } }) %></td></tr>
+        <% } %>
+        <% users.forEach(function (u) { %>
+          <tr class="<%= u.is_active ? '' : 'inactive' %>">
+            <td><%- include('../partials/person', { pn: { name: u.full_name, href: '/hm/users/' + u.id } }) %></td>
+            <td><code><%= u.username %></code></td>
+            <% if (role === 'student') { %><td><%= u.admission_no %></td><td><%= u.class_name ? u.class_name + '-' + u.section : '-' %></td><td class="num"><%= u.roll_no || '' %></td><% } %>
+            <% if (role === 'parent') { %><td><%= u.phone || '' %></td><td class="small"><%= u.children || '-' %></td><% } %>
+            <% if (role === 'teacher' || role === 'headmaster') { %><td><%= u.employee_id || '' %></td><td><%= u.designation || '' %></td><% } %>
+            <td><span class="badge <%= u.is_active ? 'st-resolved' : 'st-rejected' %>"><%= u.is_active ? 'Active' : 'Inactive' %></span></td>
+            <td class="small muted nowrap"><%= u.last_login ? utils.formatDate(u.last_login) : 'Never' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>

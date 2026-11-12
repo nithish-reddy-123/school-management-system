@@ -1,0 +1,45 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('staffAttendance'), icon: 'user-check', sub: utils.formatDate(date) + ' · ' + staff.filter(function (s) { return s.status === 'P'; }).length + ' of ' + staff.length + ' present' } }) %>
+<div class="grid grid-side">
+  <section class="card">
+    <form method="get" action="/hm/staff-attendance" class="toolbar">
+      <label class="inline-label">Date <input type="date" name="date" value="<%= date %>" max="<%= today %>"></label>
+      <button class="btn btn-light" type="submit">Go</button>
+    </form>
+    <form method="post" action="/hm/staff-attendance">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="date" value="<%= date %>">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Name</th><th>Check-in</th><th>Status</th></tr></thead>
+          <tbody>
+            <% staff.forEach(function (s) { %>
+              <tr>
+                <td><%- include('../partials/person', { pn: { name: s.full_name, sub: s.designation || '' } }) %></td>
+                <td class="nowrap"><% if (s.check_in_time) { %><span class="badge st-resolved"><%- icon('clock') %> <%= s.check_in_time %></span><% } else { %>—<% } %></td>
+                <td class="att-options">
+                  <% [['P', t('present')], ['A', t('absent')], ['L', t('onLeave')]].forEach(function ([v, l]) { %>
+                    <label class="pill pill-<%= v %>"><input type="radio" name="status_<%= s.id %>" value="<%= v %>" <%= s.status === v ? 'checked' : '' %>> <%= l %></label>
+                  <% }) %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn" type="submit"><%- icon('check-circle') %> <%= t('save') %></button>
+    </form>
+    <p class="muted small">Teachers can also self check-in from their dashboard; the time is recorded automatically.</p>
+  </section>
+  <section class="card form-panel tone-teal">
+    <h2><%- icon('calendar') %> This month</h2>
+    <p class="card-sub">Up to <%= utils.formatDate(date) %></p>
+    <div class="table-wrap">
+      <table class="table compact">
+        <thead><tr><th>Name</th><th class="num">P</th><th class="num">A</th><th class="num">L</th></tr></thead>
+        <tbody><% monthly.forEach(function (m) { %><tr><td><%= m.full_name %></td><td class="num"><span class="chip chip-good"><%= m.present %></span></td><td class="num"><%= m.absent %></td><td class="num"><%= m.leave %></td></tr><% }) %></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+<%- include('../partials/footer') %>

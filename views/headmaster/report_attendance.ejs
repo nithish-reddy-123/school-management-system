@@ -1,0 +1,72 @@
+<%- include('../partials/header') %>
+<% const selected = classId && classes.find(function (c) { return c.id === classId; }); %>
+<%- include('../partials/page_head', { ph: {
+  title: t('reports'), icon: 'chart',
+  sub: (selected ? 'Class ' + selected.name + '-' + selected.section : 'All classes') + ' · ' + utils.formatDate(from) + ' to ' + utils.formatDate(to),
+  actions: [
+    { href: '/hm/reports/attendance?class_id=' + (classId || '') + '&from=' + from + '&to=' + to + '&format=csv', label: 'Download CSV', icon: 'download', kind: 'light' },
+    { print: true },
+  ],
+} }) %>
+<section class="card">
+  <form method="get" action="/hm/reports/attendance" class="toolbar">
+    <select name="class_id" aria-label="Class">
+      <option value="">All classes (summary)</option>
+      <% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= c.id === classId ? 'selected' : '' %>>Class <%= c.name %>-<%= c.section %></option><% }) %>
+    </select>
+    <label class="inline-label">From <input type="date" name="from" value="<%= from %>"></label>
+    <label class="inline-label">To <input type="date" name="to" value="<%= to %>"></label>
+    <button class="btn" type="submit"><%- icon('search') %> Show</button>
+  </form>
+
+  <div class="table-wrap">
+    <table class="table">
+      <% if (classId) { %>
+        <thead><tr><th class="num">Roll</th><th>Name</th><th>Adm. No.</th><th class="num">Present</th><th class="num">Absent</th><th class="num">Leave</th><th class="num">Days</th><th class="num">%</th></tr></thead>
+        <tbody>
+          <% if (!rows.length) { %><tr><td colspan="8" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'users', text: 'No students in this class.', compact: true } }) %></td></tr><% } %>
+          <% rows.forEach(function (r) { %>
+            <tr>
+              <td class="num"><%= r.roll_no || '' %></td><td><%- include('../partials/person', { pn: { name: r.full_name, href: '/hm/users/' + r.id } }) %></td><td><%= r.admission_no %></td>
+              <td class="num"><%= r.present %></td><td class="num"><%= r.absent %></td><td class="num"><%= r.leave %></td><td class="num"><%= r.total %></td>
+              <td class="num"><span class="badge lvl-<%= utils.level(r.percent) %>"><%= r.percent === null ? '–' : r.percent + '%' %></span></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      <% } else { %>
+        <thead><tr><th>Class</th><th class="num">Students</th><th class="num">Present</th><th class="num">Absent</th><th class="num">Leave</th><th class="num">Records</th><th>Attendance</th></tr></thead>
+        <tbody>
+          <% if (!rows.length) { %><tr><td colspan="7" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'school', text: 'No classes yet.', compact: true } }) %></td></tr><% } %>
+          <% rows.forEach(function (r) { %>
+            <tr>
+              <td><a href="/hm/reports/attendance?class_id=<%= r.id %>&from=<%= from %>&to=<%= to %>"><strong>Class <%= r.name %>-<%= r.section %></strong></a></td>
+              <td class="num"><%= r.students %></td><td class="num"><%= r.present %></td><td class="num"><%= r.absent %></td><td class="num"><%= r.leave %></td><td class="num"><%= r.total %></td>
+              <td class="bar-cell">
+                <div class="bar-row inline"><div class="bar"><span class="lvl-<%= utils.level(r.percent) %>" style="width: <%= r.percent || 0 %>%"></span></div><span class="bar-val"><%= r.percent === null ? '–' : r.percent + '%' %></span></div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      <% } %>
+    </table>
+  </div>
+</section>
+
+<section class="card tone-rose">
+  <h2><%- icon('alert') %> Students below 75% attendance (this academic year)</h2>
+  <% if (!lowAttendance.length) { %>
+    <%- include('../partials/empty', { e: { icon: 'check-circle', text: 'No students below 75%.', compact: true } }) %>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table compact">
+        <thead><tr><th>Name</th><th>Class</th><th class="num">Present / Days</th><th class="num">%</th></tr></thead>
+        <tbody>
+          <% lowAttendance.forEach(function (s) { %>
+            <tr><td><%- include('../partials/person', { pn: { name: s.full_name, href: '/hm/users/' + s.id } }) %></td><td><%= s.class_name %>-<%= s.section %></td><td class="num"><%= s.present %> / <%= s.total %></td><td class="num"><span class="badge lvl-bad"><%= s.percent %>%</span></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+<%- include('../partials/footer') %>

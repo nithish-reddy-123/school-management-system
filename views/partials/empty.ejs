@@ -1,0 +1,10 @@
+<%
+/* Empty state. include('../partials/empty', { e: { icon, title, text, href, cta, compact } }) */
+const e = locals.e || {};
+%>
+<div class="empty-state<%= e.compact ? ' compact' : '' %>">
+  <span class="empty-art" aria-hidden="true"><%- icon(e.icon || 'sparkles') %></span>
+  <% if (e.title) { %><h3><%= e.title %></h3><% } %>
+  <% if (e.text) { %><p><%= e.text %></p><% } %>
+  <% if (e.href) { %><a class="btn btn-sm" href="<%= e.href %>"><%- icon('plus') %> <%= e.cta %></a><% } %>
+</div>

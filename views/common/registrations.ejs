@@ -1,0 +1,96 @@
+<%- include('../partials/header') %>
+<% const isHM = user.role === 'headmaster'; %>
+<%- include('../partials/page_head', { ph: { title: t('registrations'), icon: 'user-plus', sub: isHM ? 'You verify teachers; class teachers verify students and parents.' : 'Verify students and parents who registered for your class.' } }) %>
+<nav class="tabs" aria-label="Status">
+  <% [['pending', 'Waiting for verification'], ['approved', isHM ? 'Approved' : 'Approved by me'], ['rejected', isHM ? 'Rejected' : 'Rejected by me']].forEach(function ([s, l]) { %>
+    <a href="<%= base %>?status=<%= s %>" class="<%= s === status ? 'active' : '' %>"><%= l %> (<%= counts[s] || 0 %>)</a>
+  <% }) %>
+</nav>
+<% if (status === 'pending') { %>
+  <div class="callout callout-info small"><%- icon('info') %><div>
+    <% if (isHM) { %>
+      You verify <strong>teacher</strong> registrations. Student and parent registrations go to the <strong>class teacher</strong>. They come to you only when the class has no class teacher or no child could be matched. Other requests are shown here for information.
+    <% } else { %>
+      You verify <strong>students</strong> who registered for your class and <strong>parents</strong> of children in your class. Check the details against your class register before approving.
+    <% } %>
+  </div></div>
+<% } %>
+<% if (!rows.length) { %><section class="card"><%- include('../partials/empty', { e: { icon: status === 'pending' ? 'check-circle' : 'clipboard', title: status === 'pending' ? 'You are all caught up' : 'Nothing here yet', text: 'No ' + status + ' registrations.' } }) %></section><% } %>
+
+<% rows.forEach(function (r) { const d = r.d; %>
+  <section class="card reg-card <%= status === 'pending' && !r.canReview ? 'reg-readonly' : '' %>">
+    <div class="card-head">
+      <div>
+        <strong><%= r.full_name %></strong> <span class="badge"><%= t(r.role) %></span>
+        <br><small class="muted">Username <code><%= r.username %></code> · submitted <%= utils.formatDate(r.created_at) %> <%= r.created_at.slice(11, 16) %></small>
+      </div>
+      <% if (status !== 'pending') { %>
+        <span class="badge st-<%= r.status %>"><%= r.status %></span>
+      <% } else { %>
+        <span class="badge <%= r.canReview ? 'st-in_progress' : '' %>"><%= r.canReview ? 'Your verification' : 'Verifier: ' + r.route.label %></span>
+      <% } %>
+    </div>
+
+    <dl class="dl">
+      <% if (r.phone) { %><dt>Mobile</dt><dd><a href="tel:<%= r.phone %>"><%= r.phone %></a></dd><% } %>
+      <% if (r.email) { %><dt>Email</dt><dd><%= r.email %></dd><% } %>
+      <% if (r.role === 'student') { %>
+        <dt>Class requested</dt><dd><%= r.cls ? 'Class ' + r.cls.name + '-' + r.cls.section : '—' %></dd>
+        <dt>Date of birth</dt><dd><%= utils.formatDate(d.dob) || '—' %></dd>
+        <dt>Gender</dt><dd><%= GENDERS[d.gender] || '—' %></dd>
+        <dt>Admission no.</dt><dd><%= d.admission_no || 'Not given (new admission)' %></dd>
+        <dt>Parent / guardian</dt><dd><%= d.guardian_name || '—' %><%= d.guardian_phone ? ' · ' + d.guardian_phone : '' %></dd>
+        <dt>Address</dt><dd><%= d.address || '—' %></dd>
+      <% } else if (r.role === 'parent') { %>
+        <dt>Relation</dt><dd><%= RELATION_LABEL[d.relation] || '—' %></dd>
+        <dt>Children</dt>
+        <dd>
+          <% r.children.forEach(function (c) { %>
+            <div>
+              <code><%= c.adm %></code> <%- icon('arrow-right', 'inline-icon') %>
+              <% if (c.student) { %>
+                <strong><%= c.student.full_name %></strong> (Class <%= c.cls ? c.cls.name + '-' + c.cls.section : '-' %>)
+                <% if (!isHM && status === 'pending') { %><span class="badge <%= c.mine ? 'st-resolved' : '' %>"><%= c.mine ? 'your class – will be linked' : 'other class – not linked by you' %></span><% } %>
+              <% } else { %><span class="badge st-rejected">not found</span><% } %>
+            </div>
+          <% }) %>
+        </dd>
+      <% } else { %>
+        <dt>Employee ID</dt><dd><%= d.employee_id || '—' %></dd>
+        <dt>Designation</dt><dd><%= d.designation || '—' %></dd>
+        <dt>Qualification</dt><dd><%= d.qualification || '—' %></dd>
+      <% } %>
+      <% if (r.reviewed_by_name) { %><dt>Verified by</dt><dd><%= r.reviewed_by_name %> · <%= utils.formatDate(r.reviewed_at) %><%= r.review_note ? ' · ' + r.review_note : '' %></dd><% } %>
+      <% if (r.user_id && isHM) { %><dt>Account</dt><dd><a href="/hm/users/<%= r.user_id %>">Open user <%- icon('arrow-right', 'inline-icon') %></a></dd><% } %>
+    </dl>
+
+    <% r.warnings.forEach(function (w) { %><div class="callout callout-warn"><%- icon('alert') %><div><%= w %></div></div><% }) %>
+
+    <% if (status === 'pending' && r.canReview) { %>
+      <div class="reg-actions">
+        <form method="post" action="<%= base %>/<%= r.id %>/approve" class="filters">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <% if (r.role === 'student') { %>
+            <input name="admission_no" value="<%= d.admission_no || '' %>" placeholder="Admission no. *" required maxlength="30">
+            <% if (isHM) { %>
+              <select name="class_id" required>
+                <% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= c.id === d.class_id ? 'selected' : '' %>>Class <%= c.name %>-<%= c.section %></option><% }) %>
+              </select>
+            <% } %>
+            <input type="number" name="roll_no" placeholder="Roll no." min="1" max="999">
+          <% } else if (r.role === 'teacher') { %>
+            <input name="employee_id" value="<%= d.employee_id || '' %>" placeholder="Employee ID" maxlength="30">
+            <input name="designation" value="<%= d.designation || '' %>" placeholder="Designation" maxlength="80">
+          <% } %>
+          <button class="btn" type="submit"><%- icon('check-circle') %> Verify &amp; approve</button>
+        </form>
+        <form method="post" action="<%= base %>/<%= r.id %>/reject" class="filters" data-confirm="Reject this registration?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input name="note" placeholder="Reason (optional)" maxlength="300">
+          <button class="btn btn-danger" type="submit"><%- icon('x') %> Reject</button>
+        </form>
+      </div>
+    <% } %>
+  </section>
+<% }) %>
+<%- include('../partials/footer') %>

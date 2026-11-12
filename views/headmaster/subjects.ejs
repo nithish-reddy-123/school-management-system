@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('subjects'), icon: 'book', sub: subjects.length + ' subjects in the school curriculum.' } }) %>
+<div class="grid grid-side">
+  <section class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Subject</th><th>Code</th><th class="num">Classes</th></tr></thead>
+        <tbody>
+          <% if (!subjects.length) { %><tr><td colspan="3" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'book', title: 'No subjects yet', text: 'Add your first subject using the form.' } }) %></td></tr><% } %>
+          <% subjects.forEach(function (s) { %><tr><td><strong><%= s.name %></strong></td><td><% if (s.code) { %><span class="badge badge-subject"><%= s.code %></span><% } %></td><td class="num"><%= s.class_count %></td></tr><% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="card form-panel">
+    <h2><%- icon('plus') %> Add subject</h2>
+    <form method="post" action="/hm/subjects">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label>Name <input name="name" required maxlength="60" placeholder="e.g. Mathematics"></label>
+      <label>Code <input name="code" maxlength="10" placeholder="e.g. MAT"></label>
+      <button class="btn btn-block" type="submit"><%- icon('plus') %> Add subject</button>
+    </form>
+    <p class="muted small">After adding, assign the subject and its teacher on each class page.</p>
+  </section>
+</div>
+<%- include('../partials/footer') %>

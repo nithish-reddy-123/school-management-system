@@ -1,0 +1,87 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: {
+  title: 'Class ' + cls.name + '-' + cls.section, icon: 'school',
+  sub: students.length + ' students · Class teacher: ' + (cls.class_teacher_name || 'not assigned'),
+  actions: [
+    { href: '/hm/users/new?role=student&class_id=' + cls.id, label: 'Admit student', icon: 'user-plus' },
+    { href: '/hm/reports/attendance?class_id=' + cls.id, label: 'Attendance report', icon: 'chart', kind: 'light' },
+  ],
+} }) %>
+
+<div class="grid grid-2">
+  <section class="card">
+    <h2><%- icon('user-check') %> Class teacher</h2>
+    <form method="post" action="/hm/classes/<%= cls.id %>/class-teacher" class="toolbar">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <select name="class_teacher_id" class="grow" aria-label="Class teacher">
+        <option value="">— None —</option>
+        <% teachers.forEach(function (tc) { %><option value="<%= tc.id %>" <%= tc.id === cls.class_teacher_id ? 'selected' : '' %>><%= tc.full_name %></option><% }) %>
+      </select>
+      <button class="btn" type="submit"><%= t('save') %></button>
+    </form>
+    <p class="muted small">The class teacher marks daily attendance and verifies leave and registration requests for this class.</p>
+
+    <div class="divider">Subjects &amp; subject teachers</div>
+    <div class="table-wrap">
+      <table class="table compact">
+        <thead><tr><th>Subject</th><th>Teacher</th><th></th></tr></thead>
+        <tbody>
+          <% if (!classSubjects.length) { %><tr><td colspan="3" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'book', text: 'No subjects assigned.', compact: true } }) %></td></tr><% } %>
+          <% classSubjects.forEach(function (cs) { %>
+            <tr>
+              <td><span class="badge badge-subject"><%= cs.subject_name %></span></td><td><%= cs.teacher_name || '—' %></td>
+              <td class="actions">
+                <form method="post" action="/hm/classes/<%= cls.id %>/subjects/<%= cs.subject_id %>/delete" class="inline" data-confirm="Remove <%= cs.subject_name %> from this class?">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button class="link danger" type="submit">Remove</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <form method="post" action="/hm/classes/<%= cls.id %>/subjects" class="toolbar">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <select name="subject_id" required aria-label="Subject"><option value="">Subject</option><% subjects.forEach(function (s) { %><option value="<%= s.id %>"><%= s.name %></option><% }) %></select>
+      <select name="teacher_id" aria-label="Teacher"><option value="">Teacher</option><% teachers.forEach(function (tc) { %><option value="<%= tc.id %>"><%= tc.full_name %></option><% }) %></select>
+      <button class="btn" type="submit"><%- icon('plus') %> Assign</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2><%- icon('users') %> <%= t('students') %> <span class="badge"><%= students.length %></span></h2></div>
+    <div class="table-wrap">
+      <table class="table compact">
+        <thead><tr><th class="num">Roll</th><th>Name</th><th>Adm. No.</th><th>Gender</th><th>Cat.</th></tr></thead>
+        <tbody>
+          <% if (!students.length) { %><tr><td colspan="5" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'users', text: 'No students in this class.', href: '/hm/users/new?role=student&class_id=' + cls.id, cta: 'Admit student', compact: true } }) %></td></tr><% } %>
+          <% students.forEach(function (s) { %>
+            <tr><td class="num"><%= s.roll_no || '' %></td><td><%- include('../partials/person', { pn: { name: s.full_name, href: '/hm/users/' + s.id } }) %></td><td><%= s.admission_no %></td><td><%= s.gender || '' %></td><td><%= s.category || '' %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% if (!students.length) { %>
+      <form method="post" action="/hm/classes/<%= cls.id %>/delete" data-confirm="Delete this class permanently?">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="btn btn-danger btn-sm" type="submit">Delete class</button>
+      </form>
+    <% } %>
+  </section>
+</div>
+
+<section class="card" id="timetable">
+  <h2><%- icon('clock') %> <%= t('timetable') %></h2>
+  <%- include('../partials/timetable', { timetable: timetable }) %>
+  <form method="post" action="/hm/classes/<%= cls.id %>/timetable" class="toolbar">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <select name="day" required aria-label="Day"><% for (let d = 1; d <= 6; d++) { %><option value="<%= d %>"><%= DAYS[d] %></option><% } %></select>
+    <select name="period" required aria-label="Period"><% PERIODS.forEach(function (p) { %><option value="<%= p %>">Period <%= p %></option><% }) %></select>
+    <select name="subject_id" aria-label="Subject"><option value="">— Free / clear —</option><% subjects.forEach(function (s) { %><option value="<%= s.id %>"><%= s.name %></option><% }) %></select>
+    <select name="teacher_id" aria-label="Teacher"><option value="">Teacher</option><% teachers.forEach(function (tc) { %><option value="<%= tc.id %>"><%= tc.full_name %></option><% }) %></select>
+    <button class="btn" type="submit"><%- icon('check-circle') %> Set period</button>
+  </form>
+  <p class="muted small">A teacher cannot be booked in two classes for the same day and period.</p>
+</section>
+<%- include('../partials/footer') %>

@@ -1,0 +1,61 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('profile'), icon: 'user', actions: [{ href: '/change-password', label: t('changePassword'), icon: 'key', kind: 'light' }] } }) %>
+<div class="grid grid-2">
+  <section class="card">
+    <div class="profile-head">
+      <span class="avatar-sm avatar-lg" style="--h: <%= utils.hue(user.full_name) %>" aria-hidden="true"><%= utils.initials(user.full_name) %></span>
+      <div>
+        <h2 class="profile-name"><%= user.full_name %></h2>
+        <p class="muted small">@<%= user.username %> · <span class="badge"><%= t(user.role) %></span></p>
+      </div>
+    </div>
+    <dl class="dl">
+      <dt>Mobile</dt><dd><%= user.phone || '-' %></dd>
+      <dt>Email</dt><dd><%= user.email || '-' %></dd>
+      <dt>Last login</dt><dd><%= user.last_login ? utils.formatDate(user.last_login) + ' ' + user.last_login.slice(11, 16) : '-' %></dd>
+    </dl>
+    <p class="muted small">To correct your name, mobile number or other records, please contact the school office.</p>
+  </section>
+
+  <% if (details) { %>
+    <section class="card">
+      <h2><%- icon('backpack') %> Student record</h2>
+      <dl class="dl">
+        <dt>Admission No.</dt><dd><%= details.admission_no %></dd>
+        <dt>Class</dt><dd><%= details.class_name ? 'Class ' + details.class_name + '-' + details.section : '-' %> · Roll <%= details.roll_no || '-' %></dd>
+        <dt>Class teacher</dt><dd><%= details.class_teacher_name || '-' %></dd>
+        <dt>Date of birth</dt><dd><%= utils.formatDate(details.dob) || '-' %></dd>
+        <dt>Category</dt><dd><%= utils.CATEGORIES[details.category] || '-' %></dd>
+        <dt>APAAR ID</dt><dd><%= details.apaar_id ? '•••• •••• ' + details.apaar_id.slice(-4) : 'Not generated' %></dd>
+        <dt>Address</dt><dd><%= details.address || '-' %></dd>
+      </dl>
+    </section>
+  <% } %>
+
+  <% if (teacher) { %>
+    <section class="card tone-violet">
+      <h2><%- icon('clipboard') %> Service record</h2>
+      <dl class="dl">
+        <dt>Employee ID</dt><dd><%= teacher.employee_id || '-' %></dd>
+        <dt>Designation</dt><dd><%= teacher.designation || '-' %></dd>
+        <dt>Qualification</dt><dd><%= teacher.qualification || '-' %></dd>
+        <dt>Joining date</dt><dd><%= utils.formatDate(teacher.joining_date) || '-' %></dd>
+        <% if (locals.classes && classes.length) { %>
+          <dt>Classes</dt><dd><% classes.forEach(function (c, i) { %><%= i ? ', ' : '' %><%= c.name %>-<%= c.section %><%= c.is_class_teacher ? ' (class teacher)' : '' %><% }) %></dd>
+        <% } %>
+      </dl>
+    </section>
+  <% } %>
+
+  <% if (children.length) { %>
+    <section class="card tone-amber">
+      <h2><%- icon('heart') %> <%= t('myChildren') %></h2>
+      <ul class="list-rows">
+        <% children.forEach(function (c) { %>
+          <li><%- include('../partials/person', { pn: { name: c.full_name, href: '/parent/child/' + c.id, sub: 'Class ' + c.class_name + '-' + c.section + ' · Adm. ' + c.admission_no } }) %><a class="btn btn-sm btn-light" href="/parent/child/<%= c.id %>" aria-label="View <%= c.full_name %>"><%- icon('arrow-right') %></a></li>
+        <% }) %>
+      </ul>
+    </section>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

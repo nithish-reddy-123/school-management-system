@@ -1,0 +1,6 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('homework'), icon: 'notebook', sub: homework.length + ' assignment(s) for your class.' } }) %>
+<section class="card">
+  <%- include('../partials/homework_list', { homework: homework }) %>
+</section>
+<%- include('../partials/footer') %>

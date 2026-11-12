@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('mdm'), icon: 'bowl', sub: 'Daily register of meals served under PM POSHAN.' } }) %>
+<div class="stats">
+  <div class="stat tone-amber"><span class="n"><%= month.days %></span><span class="l">Days recorded this month</span><span class="stat-icon"><%- icon('calendar') %></span></div>
+  <div class="stat tone-green"><span class="n"><%= month.meals %></span><span class="l">Meals served this month</span><span class="stat-icon"><%- icon('bowl') %></span></div>
+  <div class="stat tone-blue"><span class="n"><%= month.days ? Math.round(month.meals / month.days) : 0 %></span><span class="l">Average meals per day</span><span class="stat-icon"><%- icon('chart') %></span></div>
+</div>
+<div class="grid grid-side">
+  <section class="card">
+    <h2><%- icon('clipboard') %> Daily register</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Date</th><th>Menu</th><th class="num">Present</th><th class="num">Served</th><th>Tasted</th><th>Remarks</th></tr></thead>
+        <tbody>
+          <% if (!records.length) { %><tr><td colspan="6" class="empty-cell"><%- include('../partials/empty', { e: { icon: 'bowl', title: 'No meals recorded yet', text: 'Record today\'s meal using the form.' } }) %></td></tr><% } %>
+          <% records.forEach(function (r) { %>
+            <tr>
+              <td class="nowrap"><a href="/hm/mdm?date=<%= r.date %>"><%= utils.formatDate(r.date) %></a></td><td><%= r.menu %></td>
+              <td class="num"><%= r.students_present %></td><td class="num"><%= r.meals_served %></td>
+              <td><% if (r.quality_checked) { %><span class="badge st-resolved"><%- icon('check-circle') %> Yes</span><% } else { %><span class="badge">No</span><% } %></td><td class="small"><%= r.remarks || '' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="card form-panel tone-amber">
+    <h2><%- icon(existing ? 'pen' : 'plus') %> <%= existing ? 'Update' : 'Record' %> meal</h2>
+    <p class="card-sub"><%= utils.formatDate(date) %></p>
+    <form method="get" action="/hm/mdm" class="toolbar">
+      <input type="date" name="date" value="<%= date %>" max="<%= today %>" aria-label="Date">
+      <button class="btn btn-light btn-sm" type="submit">Change date</button>
+    </form>
+    <form method="post" action="/hm/mdm">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="date" value="<%= date %>">
+      <label>Menu served <input name="menu" required maxlength="300" value="<%= existing ? existing.menu : '' %>" placeholder="e.g. Dal, Chawal, Sabzi"></label>
+      <label>Students present
+        <input type="number" name="students_present" min="0" required value="<%= existing ? existing.students_present : presentToday %>">
+        <small class="muted">Pre-filled from attendance: <%= presentToday %> present.</small>
+      </label>
+      <label>Meals served <input type="number" name="meals_served" min="0" required value="<%= existing ? existing.meals_served : presentToday %>"></label>
+      <label class="check"><input type="checkbox" name="quality_checked" value="1" <%= !existing || existing.quality_checked ? 'checked' : '' %>> Food tasted by teacher / SMC member before serving</label>
+      <label>Remarks <textarea name="remarks" rows="2" maxlength="500"><%= existing ? existing.remarks || '' : '' %></textarea></label>
+      <button class="btn btn-block" type="submit"><%- icon('check-circle') %> <%= t('save') %></button>
+    </form>
+  </section>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,8 @@
+<%- include('../partials/header') %>
+<% const st = overview.student; %>
+<%- include('../partials/page_head', { ph: {
+  title: st.full_name, icon: 'heart', sub: 'Class ' + st.class_name + '-' + st.section + ' · Adm. ' + st.admission_no,
+  actions: [{ href: '/dashboard', label: t('myChildren'), icon: 'chevron-left', kind: 'light' }, { href: '/parent/leave', label: t('applyLeave'), icon: 'send' }],
+} }) %>
+<%- include('../partials/student_overview', { overview: overview, baseUrl: '/parent/child/' + st.id }) %>
+<%- include('../partials/footer') %>

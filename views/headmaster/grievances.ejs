@@ -1,0 +1,34 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page_head', { ph: { title: t('grievances'), icon: 'message', sub: 'Respond to complaints and suggestions from students, parents and staff.' } }) %>
+<nav class="tabs" aria-label="Status">
+  <a href="/hm/grievances" class="<%= !status ? 'active' : '' %>"><%= t('all') %></a>
+  <a href="/hm/grievances?status=open" class="<%= status === 'open' ? 'active' : '' %>">Open</a>
+  <a href="/hm/grievances?status=in_progress" class="<%= status === 'in_progress' ? 'active' : '' %>">In progress</a>
+  <a href="/hm/grievances?status=resolved" class="<%= status === 'resolved' ? 'active' : '' %>">Resolved</a>
+</nav>
+<% if (!rows.length) { %>
+  <section class="card"><%- include('../partials/empty', { e: { icon: 'check-circle', title: 'All clear', text: 'There are no grievances in this list.' } }) %></section>
+<% } %>
+<% rows.forEach(function (g) { %>
+  <section class="card grievance-card">
+    <div class="card-head">
+      <%- include('../partials/person', { pn: { name: g.raised_by_name || 'Anonymous', sub: (g.raised_by_name ? g.raised_role : 'Anonymous ' + g.raised_role) + ' · ' + utils.formatDate(g.created_at) } }) %>
+      <span class="badge st-<%= g.status %>"><%= g.status.replace('_', ' ') %></span>
+    </div>
+    <h3 class="grievance-title"><%= g.subject %> <span class="badge"><%= g.category %></span></h3>
+    <p class="pre"><%= g.description %></p>
+    <% if (g.responded_by_name) { %><p class="muted small">Last response by <%= g.responded_by_name %> on <%= utils.formatDate(g.updated_at) %></p><% } %>
+    <form method="post" action="/hm/grievances/<%= g.id %>" class="respond">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label class="sr-only" for="resp<%= g.id %>">Response</label>
+      <textarea id="resp<%= g.id %>" name="response" rows="2" maxlength="2000" placeholder="Response / action taken"><%= g.response || '' %></textarea>
+      <div class="toolbar">
+        <select name="status" aria-label="Status">
+          <% ['open', 'in_progress', 'resolved'].forEach(function (s) { %><option value="<%= s %>" <%= s === g.status ? 'selected' : '' %>><%= s.replace('_', ' ') %></option><% }) %>
+        </select>
+        <button class="btn btn-sm" type="submit"><%- icon('send') %> <%= t('save') %></button>
+      </div>
+    </form>
+  </section>
+<% }) %>
+<%- include('../partials/footer') %>
