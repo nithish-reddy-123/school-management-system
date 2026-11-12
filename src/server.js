@@ -9,9 +9,9 @@ const session = require('express-session');
 const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 
-const { one, run, dbPath } = require('./db');
+const { one, run, dbPath, replaceDatabase } = require('./db');
 const SQLiteStore = require('./sessionStore');
-const { connectMongo } = require('./mongodb');
+const { connectMongo, restoreSqliteSnapshot, queueSqliteSnapshot } = require('./mongodb');
 const { locals, loadUser, csrf, enforcePasswordChange } = require('./middleware/auth');
 const { generatePassword } = require('./utils');
 
@@ -50,8 +50,19 @@ function bootstrap() {
   }
 }
 
-bootstrap();
-connectMongo().catch((err) => console.error(`MongoDB Atlas connection failed: ${err.message}`));
+async function initialize() {
+  if (process.env.MONGODB_URI) {
+    await connectMongo();
+    replaceDatabase(await restoreSqliteSnapshot());
+  }
+  bootstrap();
+  await queueSqliteSnapshot(dbPath);
+}
+
+const ready = initialize().catch((err) => {
+  console.error(`Database initialization failed: ${err.message}`);
+  throw err;
+});
 
 const app = express();
 app.disable('x-powered-by');
@@ -67,7 +78,22 @@ app.use(helmet({
     },
   },
 }));
-app.use(express.static(path.join(__dirname, '..', 'public'), { maxAge: isProd ? '7d' : 0 }));
+// Cache-busting: CSS/JS URLs carry ?v=<hash of the file>, so browsers fetch new code immediately after
+// an update but can still cache unchanged files for a long time.
+const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const assetVersion = {};
+for (const f of ['css/style.css', 'js/app.js', 'js/theme.js']) {
+  assetVersion[f] = crypto.createHash('sha256').update(fs.readFileSync(path.join(PUBLIC_DIR, f))).digest('hex').slice(0, 10);
+}
+app.locals.asset = (f) => `/${f}?v=${assetVersion[f] || '0'}`;
+app.use((req, res, next) => ready.then(() => next()).catch(next));
+app.use(express.static(PUBLIC_DIR, {
+  maxAge: isProd ? '7d' : 0,
+  setHeaders: (res, filePath) => {
+    // Versioned CSS/JS can be cached for a year in production; HTML always revalidates.
+    if (isProd && /\.(css|js)$/.test(filePath)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  },
+}));
 app.use(express.urlencoded({ extended: false, limit: '200kb', parameterLimit: 5000 }));
 app.use(session({
   name: 'sms.sid',
@@ -104,9 +130,9 @@ app.use((err, req, res, next) => {
 });
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  ready.then(() => app.listen(PORT, () => {
     console.log(`School Management System running at http://localhost:${PORT}`);
-  });
+  })).catch(() => process.exitCode = 1);
 }
 
 module.exports = app;

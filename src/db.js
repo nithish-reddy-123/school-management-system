@@ -2,14 +2,20 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const { DatabaseSync } = require('node:sqlite');
+const { queueSqliteSnapshot } = require('./mongodb');
 
 const dbPath = process.env.DB_PATH
   ? path.resolve(process.env.DB_PATH)
   : path.join(__dirname, '..', 'data', 'school.db');
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
-const db = new DatabaseSync(dbPath);
-db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
+let db = new DatabaseSync(dbPath);
+
+function configureDatabase() {
+  db.exec('PRAGMA journal_mode = DELETE; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
+}
+
+configureDatabase();
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS school_info (
@@ -259,18 +265,26 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 `;
 
-db.exec(SCHEMA);
+function applySchema() {
+  db.exec(SCHEMA);
+}
+
+applySchema();
 
 // Lightweight migrations: add newer columns to databases created by earlier versions.
 const MIGRATIONS = {
   school_info: [['name_te', 'TEXT'], ['about', 'TEXT'], ['facilities', 'TEXT'], ['timings', 'TEXT'], ['photo', 'TEXT']],
 };
-for (const [table, columns] of Object.entries(MIGRATIONS)) {
-  const existing = db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
-  for (const [name, type] of columns) {
-    if (!existing.includes(name)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${type}`);
+function applyMigrations() {
+  for (const [table, columns] of Object.entries(MIGRATIONS)) {
+    const existing = db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+    for (const [name, type] of columns) {
+      if (!existing.includes(name)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${type}`);
+    }
   }
 }
+
+applyMigrations();
 
 // node:sqlite rejects undefined/boolean bind values, so normalise them.
 function norm(params) {
@@ -293,18 +307,34 @@ function stmt(sql) {
 
 const one = (sql, ...params) => stmt(sql).get(...norm(params));
 const all = (sql, ...params) => stmt(sql).all(...norm(params));
-const run = (sql, ...params) => stmt(sql).run(...norm(params));
+const run = (sql, ...params) => {
+  const result = stmt(sql).run(...norm(params));
+  queueSqliteSnapshot(dbPath);
+  return result;
+};
 
 function tx(fn) {
   db.exec('BEGIN');
   try {
     const result = fn();
     db.exec('COMMIT');
+    queueSqliteSnapshot(dbPath);
     return result;
   } catch (err) {
     db.exec('ROLLBACK');
     throw err;
   }
+}
+
+function replaceDatabase(snapshot) {
+  if (!snapshot) return;
+  db.close();
+  fs.writeFileSync(dbPath, snapshot);
+  db = new DatabaseSync(dbPath);
+  configureDatabase();
+  cache.clear();
+  applySchema();
+  applyMigrations();
 }
 
 function audit(userId, action, details, ip) {
@@ -315,4 +345,4 @@ function audit(userId, action, details, ip) {
 const UPLOAD_DIR = path.join(path.dirname(dbPath), 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-module.exports = { db, one, all, run, tx, audit, dbPath, UPLOAD_DIR };
+module.exports = { get db() { return db; }, one, all, run, tx, audit, dbPath, UPLOAD_DIR, replaceDatabase };
