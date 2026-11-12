@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: school-management-system
+    runtime: node
+    plan: starter
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DB_PATH
+        value: /var/data/school.db
+    disk:
+      name: school-data
+      mountPath: /var/data
+      sizeGB: 1
