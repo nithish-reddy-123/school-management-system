@@ -11,6 +11,7 @@ const bcrypt = require('bcryptjs');
 
 const { one, run, dbPath } = require('./db');
 const SQLiteStore = require('./sessionStore');
+const { connectMongo } = require('./mongodb');
 const { locals, loadUser, csrf, enforcePasswordChange } = require('./middleware/auth');
 const { generatePassword } = require('./utils');
 
@@ -50,6 +51,7 @@ function bootstrap() {
 }
 
 bootstrap();
+connectMongo().catch((err) => console.error(`MongoDB Atlas connection failed: ${err.message}`));
 
 const app = express();
 app.disable('x-powered-by');
