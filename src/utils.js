@@ -18,6 +18,14 @@ function nowLocal(d = new Date()) {
   return `${localDate(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
+const TIMEZONE = process.env.TZ;
+const CLOCK_FORMAT = { timeZone: TIMEZONE, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+
+/** Time for the live clock, e.g. "07:26:05 pm". The browser script uses the same format, so the first tick doesn't jump. */
+function clockTime(d = new Date()) {
+  return d.toLocaleTimeString('en-IN', CLOCK_FORMAT);
+}
+
 function localTime(d = new Date()) {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
@@ -141,7 +149,7 @@ function dayOfWeek(dateStr) {
 }
 
 module.exports = {
-  localDate, localTime, nowLocal, addDays, isValidDate, academicYear, formatDate, grade,
+  localDate, localTime, nowLocal, clockTime, TIMEZONE, addDays, isValidDate, academicYear, formatDate, grade,
   generatePassword, toInt, str, csvEscape, percent, dayOfWeek, monthParam, level,
   passwordProblem, USERNAME_RE, PHONE_RE, EMAIL_RE, initials, hue,
   DAYS, PERIODS, CATEGORIES, GENDERS,

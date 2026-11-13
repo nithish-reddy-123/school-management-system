@@ -2,7 +2,12 @@
 <section class="welcome reveal">
   <div>
     <p class="eyebrow"><%= t(greeting) %> <span class="wave-hand">👋</span></p>
-    <h1><%= user.full_name %></h1>
+    <h1 class="welcome-name">
+      <span><%= user.full_name %></span>
+      <span class="live-clock" role="timer" aria-label="Current time" data-live-clock data-tz="<%= utils.TIMEZONE %>">
+        <%- icon('clock') %><span data-clock-text><%= utils.clockTime() %></span><small>IST</small>
+      </span>
+    </h1>
     <p><%= new Date(today + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) %></p>
   </div>
   <div class="quick">

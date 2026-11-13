@@ -285,6 +285,15 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.25rem 0; }
 .welcome::before { width: 320px; height: 320px; right: -80px; top: -150px; animation: float 12s ease-in-out infinite; }
 .welcome::after { width: 180px; height: 180px; right: 220px; bottom: -110px; background: rgb(255 153 51 / .22); animation: float 9s ease-in-out infinite reverse; }
 .welcome h1 { color: #fff; margin: .1rem 0 .3rem; font-size: 1.65rem; }
+.welcome-name { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .75rem; }
+.live-clock {
+  display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .75rem; border-radius: 999px;
+  background: rgb(255 255 255 / .14); border: 1px solid rgb(255 255 255 / .28); color: #fff;
+  font-size: .9rem; font-weight: 600; letter-spacing: .02em; line-height: 1.2; white-space: nowrap;
+  font-variant-numeric: tabular-nums; /* digits keep the same width, so the chip doesn't wobble every second */
+}
+.live-clock .icon { width: 16px; height: 16px; opacity: .9; }
+.live-clock small { font-size: .68rem; font-weight: 700; color: #ffd8a8; letter-spacing: .06em; }
 .welcome .eyebrow { margin: 0; font-size: .82rem; font-weight: 600; letter-spacing: .04em; color: #ffd8a8; text-transform: uppercase; }
 .welcome p { margin: 0; color: rgb(255 255 255 / .85); }
 .welcome .quick { margin: 0; }

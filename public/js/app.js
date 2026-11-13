@@ -314,6 +314,23 @@
     apply();
   });
 
+  /* ---------- Live clock: <span data-live-clock data-tz="Asia/Kolkata"><span data-clock-text></span></span> ---------- */
+  // Shows the school's time zone (not the visitor's device zone), in the same format the server rendered.
+  document.querySelectorAll('[data-live-clock]').forEach((clock) => {
+    const text = clock.querySelector('[data-clock-text]');
+    if (!text) return;
+    let format;
+    try {
+      format = new Intl.DateTimeFormat('en-IN', { timeZone: clock.dataset.tz || 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    } catch {
+      return; // unknown time zone: keep the server-rendered time
+    }
+    const tick = () => {
+      text.textContent = format.format(new Date());
+      setTimeout(tick, 1000 - (Date.now() % 1000) + 5); // align to the start of each second
+    };
+    tick();
+  });
   /* ---------- Escape closes overlays ---------- */
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
