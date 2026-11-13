@@ -130,6 +130,7 @@ Copy `.env.example` to `.env`:
 | `TRUST_PROXY` | Set to `1` when running behind a reverse proxy (nginx etc.) |
 | `MONGODB_URI` | MongoDB connection string. **Required in production**; defaults to `mongodb://127.0.0.1:27017` in development |
 | `MONGODB_DB` | Database name (default: the name in the URI path, otherwise `school_management`) |
+| `APP_TIMEZONE` | Time zone for "today", check-in times and timestamps (default `Asia/Kolkata`, independent of the server's time zone) |
 
 In development, a session secret is generated and saved to `data/.session-secret`.
 

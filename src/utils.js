@@ -1,6 +1,11 @@
 'use strict';
 const crypto = require('node:crypto');
 
+// All dates and times use the school's time zone, not the server's. Hosting servers (e.g. Render) usually run on
+// UTC, which would make "today", check-in times and timestamps 5h30m behind India time.
+// Set APP_TIMEZONE to override (IANA name, e.g. Asia/Kolkata). This file is loaded before any date is created.
+process.env.TZ = process.env.APP_TIMEZONE || 'Asia/Kolkata';
+
 const pad = (n) => String(n).padStart(2, '0');
 
 /** Local (server time zone) date as YYYY-MM-DD. Avoids the UTC shift of toISOString(). */
