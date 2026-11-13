@@ -7,12 +7,9 @@ const crypto = require('node:crypto');
 const express = require('express');
 const session = require('express-session');
 const helmet = require('helmet');
-const bcrypt = require('bcryptjs');
-
-const { connect, col, dbInfo, insertWithId, dupKey } = require('./db');
+const { connect, dbInfo } = require('./db');
 const MongoSessionStore = require('./sessionStore');
 const { locals, loadUser, csrf, enforcePasswordChange } = require('./middleware/auth');
-const { generatePassword, nowLocal } = require('./utils');
 
 const isProd = process.env.NODE_ENV === 'production';
 const PORT = Number(process.env.PORT) || 3000;
@@ -33,37 +30,8 @@ function sessionSecret() {
   return fs.readFileSync(file, 'utf8').trim();
 }
 
-/** First run without demo data: create a default school record, classes 6-10 and one headmaster account. */
-async function bootstrap() {
-  await col('school_info').updateOne({ id: 1 }, { $setOnInsert: { name: 'Government School', state: 'India', photo: null } }, { upsert: true });
-  if (!(await col('classes').findOne({}))) {
-    for (const name of ['6', '7', '8', '9', '10']) {
-      try {
-        await insertWithId('classes', { name, section: 'A', class_teacher_id: null });
-      } catch (err) {
-        if (!dupKey(err)) throw err; // another instance created it at the same time
-      }
-    }
-  }
-  if (!(await col('users').findOne({}))) {
-    const pw = generatePassword();
-    try {
-      await insertWithId('users', {
-        username: 'headmaster', password_hash: await bcrypt.hash(pw, 10), role: 'headmaster', full_name: 'Headmaster',
-        phone: null, email: null, is_active: 1, must_change_password: 1, last_login: null, created_at: nowLocal(),
-      });
-      console.log('\n  No users found. Created the first headmaster account:');
-      console.log(`    username: headmaster   temporary password: ${pw}`);
-      console.log('  (You will be asked to change it at first login. Run "npm run seed:reset" for demo data instead.)\n');
-    } catch (err) {
-      if (!dupKey(err)) throw err;
-    }
-  }
-}
-
 async function initialize() {
   await connect();
-  await bootstrap();
   const { host, dbName } = dbInfo();
   console.log(`Connected to MongoDB database "${dbName}" on ${host}`);
 }

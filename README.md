@@ -10,12 +10,12 @@ Requires Node.js 22.5 or newer (tested on 23.1) and MongoDB (a local server, tes
 
 ```powershell
 npm install
-npm run seed      # loads demo data into MongoDB (only if the database has no users)
 npm start         # http://localhost:3000
 ```
 
 Without a `.env` file the app uses `mongodb://127.0.0.1:27017` and the database `school_management`.
-`npm run seed:reset` deletes **all** school data in that database and reloads the demo data. `npm run dev` restarts the server automatically when files change.
+`npm run dev` restarts the server automatically when files change. The application includes no sample data; create school records through the headmaster account.
+To remove all school data while retaining that account, run `npm run clear-data`.
 
 ### Moving data from the old SQLite version
 
@@ -27,17 +27,6 @@ npm run migrate:sqlite -- --force   # replaces the school data already in the Mo
 ```
 
 Ids, links, attendance, marks and the uploaded school photo are kept. Everyone signs in again once, because old sessions are not copied.
-
-### Demo accounts (password `Pass@123` for all)
-
-| Role | Usernames | Notes |
-|---|---|---|
-| Headmaster | `headmaster` | Full administration |
-| Teacher | `teacher1` … `teacher5` | `teacher1` is class teacher of 6-A, `teacher2` of 7-A, `teacher3` of 8-A |
-| Student | `student1` … `student24` | 8 students each in classes 6-A, 7-A, 8-A |
-| Parent | `parent1` … `parent5` | `parent1` has two children (6-A and 7-A) |
-
-If you start the server on an empty database without seeding, it creates one `headmaster` account and prints a temporary password in the console.
 
 ## Features by role
 
@@ -152,9 +141,8 @@ In development, a session secret is generated and saved to `data/.session-secret
 
 ```
 src/
-  server.js            app setup, security middleware, first-run bootstrap
+  server.js            app setup and security middleware
   db.js                MongoDB connection, collections, indexes and helpers
-  seed.js              demo data
   migrate-sqlite.js    one-time import from the old SQLite database
   sessionStore.js      sessions stored in MongoDB
   i18n.js              English/Hindi labels

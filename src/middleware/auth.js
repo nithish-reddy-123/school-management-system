@@ -63,7 +63,7 @@ async function locals(req, res, next) {
   res.locals.crumb = null;
   res.locals.pendingRegistrations = 0;
   res.locals.csrfToken = '';
-  const school = await col('school_info').findOne({ id: 1 }, { projection: { _id: 0 } }) || { name: 'Government School', udise_code: '', district: '', state: '' };
+  const school = await col('school_info').findOne({ id: 1 }, { projection: { _id: 0 } }) || { name: '', udise_code: '', district: '', state: '' };
   res.locals.school = school;
   res.locals.schoolName = (lang === 'hi' && school.name_hi) || (lang === 'te' && school.name_te) || school.name;
   res.locals.hasPhoto = !!school.photo;
