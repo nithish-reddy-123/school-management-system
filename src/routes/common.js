@@ -26,19 +26,11 @@ const PHOTO_ID = 'school-photo';
 router.get('/', async (req, res) => {
   if (req.user) return res.redirect('/dashboard');
   const lang = res.locals.lang;
-  const users = col('users');
-  const [students, teachers, classes, hasPhoto, events] = await Promise.all([
-    users.countDocuments({ role: 'student', is_active: 1 }),
-    users.countDocuments({ role: { $in: ['teacher', 'headmaster'] }, is_active: 1 }),
-    col('classes').countDocuments(),
-    hasSchoolPhoto(),
-    A.upcomingEvents(6),
-  ]);
+  const [hasPhoto, events] = await Promise.all([hasSchoolPhoto(), A.upcomingEvents(6)]);
   const school = res.locals.school;
   res.render('landing', {
     title: res.locals.t('home'),
     hasPhoto,
-    counts: { students, teachers, classes },
     quote: quoteOfTheDay(lang),
     quotes: allQuotes(lang),
     events,

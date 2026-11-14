@@ -24,11 +24,11 @@
       <% if (school.board) { %><span><%= school.board %></span><% } %>
       <% if (school.medium) { %><span><%= school.medium %></span><% } %>
     </div>
-    <div class="hero-stats">
-      <div><b data-count><%= counts.students %></b><span><%= t('students') %></span></div>
-      <div><b data-count><%= counts.teachers %></b><span><%= t('teachers') %></span></div>
-      <div><b data-count><%= counts.classes %></b><span><%= t('classes') %></span></div>
-    </div>
+    <ul class="hero-highlights">
+      <% [['cap', 'hl_free'], ['bowl', 'hl_meal'], ['book', 'hl_books'], ['check-square', 'hl_digital']].forEach(function ([ico, key]) { %>
+        <li><span class="hh-icon" aria-hidden="true"><%- icon(ico) %></span><span><b><%= t(key) %></b><small><%= t(key + '_d') %></small></span></li>
+      <% }) %>
+    </ul>
     <div class="quick">
       <a class="btn btn-saffron btn-lg" href="#login-roles"><%= t('loginAs') %> <%- icon('arrow-right') %></a>
       <a class="btn btn-ghost btn-lg" href="/register"><%= t('newHere') %> <%= t('register') %></a>
